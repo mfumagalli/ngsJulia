@@ -41,7 +41,7 @@ if (is.null(opt$pool)) opt$pool=FALSE
 # if (is.null(opt$out))
 
 # switch panc to 1-panc for old consistency to previous version
-panc=1-panc
+opt$panc=1-opt$panc
 
 # assign to old variables (then in the future change this)
 fout_log=paste(opt$out, ".log", sep="", collapse="")

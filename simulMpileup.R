@@ -15,7 +15,7 @@ spec=matrix(c(
 	      'depth', 'd', 2, "double", "mean depth per sample [default 20.0]",
 	      'qual', 'q', 2, "integer", "mean base quality in phred score [default 20]",
 	      'ksfs', 'k', 2, "double", "coeff. for shape of SFS default [1.0]",
-	      'panc', 'a', 2, "double", "probability that ancestor state is incorrect [0.0]",
+	      'panc', 'a', 2, "double", "probability that ancestor state is correct [1.0]",
 	      'ne', 'n', 2, "integer", "effective population size [default 10,000]",
 	      'pool', 'p', 0, "logical", "enable pool data",
 	      'help', 'h', 0, "logical", "print help message",
@@ -34,11 +34,14 @@ if (is.null(opt$sites)) opt$sites=1e3
 if (is.null(opt$depth)) opt$depth=20.0
 if (is.null(opt$qual)) opt$qual=20
 if (is.null(opt$ksfs)) opt$ksfs=1.0
-if (is.null(opt$panc)) opt$panc=0.0
+if (is.null(opt$panc)) opt$panc=1.0
 if (is.null(opt$ne)) opt$ne=1e4
 if (is.null(opt$verbose)) opt$verbose=FALSE
 if (is.null(opt$pool)) opt$pool=FALSE
 # if (is.null(opt$out))
+
+# switch panc to 1-panc for old consistency to previous version
+panc=1-panc
 
 # assign to old variables (then in the future change this)
 fout_log=paste(opt$out, ".log", sep="", collapse="")

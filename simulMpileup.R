@@ -117,14 +117,17 @@ pder=c(0, ee, 0);
 # http://www.omixon.com/bioinformatics-for-beginners-file-formats-part-2-short-reads/
 
 # use only sites where there is at least 1 read per sample if not pooled, or use the total depth if pool
-if (opt$pool==FALSE) {
-	valid=which(apply(X=depth, FUN=min, MAR=2)>0)
-} else {
-	# cat(apply(X=depth, FUN=sum, MAR=2))
-	valid=which(apply(X=depth, FUN=sum, MAR=2)>0)
-}
+#if (opt$pool==FALSE) {
+#	valid=which(apply(X=depth, FUN=min, MAR=2)>0)
+#} else {
+#	# cat(apply(X=depth, FUN=sum, MAR=2))
+#	valid=which(apply(X=depth, FUN=sum, MAR=2)>0)
+#}
 
-for (i in valid) { # cycle across sites
+# new change, if depth is 0, replace with only 1 read with very low quality
+
+#for (i in valid) { # cycle across sites
+for (i in 1:opt$sites) {
 
 	# if pool, initialise
 	pool_alls=pool_bqs=c()
@@ -187,7 +190,13 @@ for (i in valid) { # cycle across sites
 
 				} # end each read
 
-			} # end if data
+			} else { # end if data
+			
+				bqs=c(bqs,"!")
+				alls=c(alls,"N")
+				depth[n,i]=1
+
+			} # end if not data
 
 		} # end if haploid
 
@@ -220,7 +229,13 @@ for (i in valid) { # cycle across sites
 					alls=c(alls, sample(x=c(".","C","G","T"), size=1, prob=probs))
 				} # end for each read
 
-			} # end if data
+			} else { # end if data
+				
+				bqs=c(bqs,"!")
+				alls=c(alls,"N")
+				depth[n,i]=1
+							
+			} # end if not data# end if data
 
 		} # end if diploid
 
@@ -254,7 +269,13 @@ for (i in valid) { # cycle across sites
 					alls=c(alls, sample(x=c(".","C","G","T"), size=1, prob=probs))
 				}
 
-			} # end if data
+			} else { # end if data
+				
+				bqs=c(bqs,"!")
+				alls=c(alls,"N")
+				depth[n,i]=1
+							
+			} # end if not data# end if data
 
 		} # end if triploid
 
@@ -290,7 +311,13 @@ for (i in valid) { # cycle across sites
 					alls=c(alls, sample(x=c(".","C","G","T"), size=1, prob=probs))
 				}
 
-			} # end if data
+			} else { # end if data
+				
+				bqs=c(bqs,"!")
+				alls=c(alls,"N")
+				depth[n,i]=1
+							
+			} # end if not data# end if data
 
 		} # end if tetraploid
 
@@ -328,7 +355,13 @@ for (i in valid) { # cycle across sites
 					alls=c(alls, sample(x=c(".","C","G","T"), size=1, prob=probs))
 				}
 
-			} # end if data
+			} else { # end if data
+				
+				bqs=c(bqs,"!")
+				alls=c(alls,"N")
+				depth[n,i]=1
+							
+			} # end if not data# end if data
 
 		} # end if pentaploid
 

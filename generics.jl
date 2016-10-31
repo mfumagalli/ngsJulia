@@ -271,6 +271,58 @@ function calcGenoLogLike5_MajorMinor(read::Reads, site::Site, major::Int64, mino
 	return likes;
 end;
 
+# # calculate genotype likelihoods (in ln format) in case of sessaploids for Major and Minor
+function calcGenoLogLike6_MajorMinor(read::Reads, site::Site, major::Int64, minor::Int64, phredScale::Int64=33)
+
+	likes = zeros(7);
+	alleles = ['A','C','G','T'];
+	iter = 0;
+	
+	# cycle across only considered genotypes
+	for (j1,j2,j3,j4,j5,j6) = ((major,major,major,major,major,major),(major,major,major,major,major,minor),(major,major,major,major,minor,minor),(major,major,major,minor,minor,minor),(major,major,minor,minor,minor,minor),(major,minor,minor,minor,minor,minor),(minor,minor,minor,minor,minor,minor))
+
+		iter += 1;
+		for i = 1:length(read.base)
+
+			bP::Float64 = 10^((phredScale - Int64(read.baseQuality[i]))/10);
+			sublike = 0.0;
+			
+			if alleles[j1]==read.base[i]
+				sublike += (1-bP)/6
+			else																			
+				sublike += (bP/3)/6
+			end
+			if alleles[j2]==read.base[i]
+				sublike += (1-bP)/6
+			else
+				sublike += (bP/3)/6
+			end
+			if alleles[j3]==read.base[i]
+				sublike += (1-bP)/6
+			else
+				sublike += (bP/3)/6
+			end
+			if alleles[j4]==read.base[i]
+				sublike += (1-bP)/6
+			else
+				sublike += (bP/3)/6
+			end
+			if alleles[j5]==read.base[i]
+				sublike += (1-bP)/6
+			else
+				sublike += (bP/3)/6
+			end
+			if alleles[j6]==read.base[i]
+				sublike += (1-bP)/6
+			else
+				sublike += (bP/3)/6
+			end
+			likes[iter] += log(sublike)
+		end
+	end
+	return likes
+end;
+
 # convert symbols in pileup to nucleotides
 # pileup format as defined here: http://samtools.sourceforge.net/pileup.shtml
 function convertSyms(read::Reads, site::Site)

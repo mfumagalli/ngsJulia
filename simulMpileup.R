@@ -193,7 +193,7 @@ for (i in 1:opt$sites) {
 			} else { # end if data
 			
 				bqs=c(bqs,"!")
-				alls=c(alls,"N")
+				alls=c(alls,",")
 				depth[n,i]=1
 
 			} # end if not data
@@ -232,7 +232,7 @@ for (i in 1:opt$sites) {
 			} else { # end if data
 				
 				bqs=c(bqs,"!")
-				alls=c(alls,"N")
+				alls=c(alls,",")
 				depth[n,i]=1
 							
 			} # end if not data# end if data
@@ -272,7 +272,7 @@ for (i in 1:opt$sites) {
 			} else { # end if data
 				
 				bqs=c(bqs,"!")
-				alls=c(alls,"N")
+				alls=c(alls,",")
 				depth[n,i]=1
 							
 			} # end if not data# end if data
@@ -314,7 +314,7 @@ for (i in 1:opt$sites) {
 			} else { # end if data
 				
 				bqs=c(bqs,"!")
-				alls=c(alls,"N")
+				alls=c(alls,",")
 				depth[n,i]=1
 							
 			} # end if not data# end if data
@@ -358,7 +358,7 @@ for (i in 1:opt$sites) {
 			} else { # end if data
 				
 				bqs=c(bqs,"!")
-				alls=c(alls,"N")
+				alls=c(alls,",")
 				depth[n,i]=1
 							
 			} # end if not data# end if data

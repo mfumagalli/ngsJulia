@@ -18,7 +18,7 @@ type Site
 	position::Int64
 	reference::Char
 end
-Site() = Site(0, 0, 'N');
+Site() = Site("chrom", 0, 'N');
 
 # --------------------
 
@@ -29,7 +29,7 @@ type Genotype <: Sequence
 	allele::AbstractString
 	logLike::Float64
 end
-Genotype() = Genotype("N", -1.0, -1.0);
+Genotype() = Genotype(0, "N", -1.0);
 
 type Frequency <: Sequence # Frequency is a subtype of Sequence
 	frequency::Float64

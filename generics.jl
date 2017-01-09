@@ -379,6 +379,22 @@ function filterReads(read::Reads; phredScale::Int64=33, minBaseQuality::Int64=5)
 	return filt
 end
 
+# filter based on proportion or count of minor allele
+function calcNonMajorCounts(read::Reads)
+
+	alleles = ['A','C','G','T']
+	counts = zeros(4)
+
+	if (length(read.base)>0)
+		for i = 1:length(read.base)
+			counts[alleles.==split(read.base,"")[i][1]] += 1
+		end
+	end
+	
+	return sum(counts)-counts[sortperm(counts, rev=true)[1]]
+
+end
+
 
 # calculate likelihood (in ln format) for a given minor allele frequency (in case of haploids) from major and minor
 function calcFreqLogLike1_MajorMinor(read::Reads, major::Int64, minor::Int64, maf::Float64, phredScale::Int64=33)

@@ -19,7 +19,8 @@ spec=matrix(c(
 	      'ne', 'n', 2, "integer", "effective population size [default 10,000]",
 	      'pool', 'p', 0, "logical", "enable pool data",
 	      'help', 'h', 0, "logical", "print help message",
-	      'verbose', 'v', 0, "logical", "verbose creates log file"
+	      'verbose', 'v', 0, "logical", "verbose creates log file",
+	      'offset', 'f', 0, "integer", "offset value for genomic position"
 	      ), byrow=TRUE, ncol=5)
 opt = getopt(spec)
 
@@ -38,6 +39,7 @@ if (is.null(opt$panc)) opt$panc=1.0
 if (is.null(opt$ne)) opt$ne=1e4
 if (is.null(opt$verbose)) opt$verbose=FALSE
 if (is.null(opt$pool)) opt$pool=FALSE
+if (is.null(opt$offset)) opt$offset=0
 # if (is.null(opt$out))
 
 # switch panc to 1-panc for old consistency to previous version
@@ -133,7 +135,7 @@ for (i in 1:opt$sites) {
 	pool_alls=pool_bqs=c()
 
 	# first elements of line: chrom, pos, reference
-	linea=c(paste("copy_",opt$copy,sep="",collapse=""), i, ref)
+	linea=c(paste("copy_",opt$copy,sep="",collapse=""), i+opt$offset, ref)
 	# for real data output
 	linea_real=c(linea, nonref)
 

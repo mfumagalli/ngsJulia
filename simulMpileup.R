@@ -9,11 +9,12 @@ library("getopt")
 
 # http://www.inside-r.org/packages/cran/getopt/docs/getopt.package
 spec=matrix(c(
-	      'out', 'o', 2, "character", "output files for real data (and log if verbose), (mpileup is in stdout)",
-	      'copy', 'c', 1, "character", "ploidy per sample, e.g. 2x3,4 is 2,2,2,4",
-	      'sites', 's', 2, "integer", "number of sites [default 1,000]",
-	      'depth', 'd', 2, "double", "mean depth per sample [default 20.0]",
-	      'lendepth', 'l', "integer", "mean length of sites with increasing/decreasing depth [default 0, disabled]",
+	      'out',	'o', 2, "character", "output files for real data (and log if verbose), (mpileup is in stdout)",
+	      'copy', 	'c', 1, "character", "ploidy per sample, e.g. 2x3,4 is 2,2,2,4",
+	      'sites', 	's', 2, "integer", "number of sites [default 1,000]",
+	      'depth', 	'd', 2, "double", "mean depth per sample [default 20.0]",
+	      'lendepth', 'l', 2, "integer", "mean length of sites with increasing/decreasing depth [default 0, disabled]",
+	      'errdepth', 'e', 2, "double", "error rate in mean depth [default 0.05]",
 	      'qual', 'q', 2, "integer", "mean base quality in phred score [default 20]",
 	      'ksfs', 'k', 2, "double", "coeff. for shape of SFS default [1.0]",
 	      'panc', 'a', 2, "double", "probability that ancestor state is correct [1.0]",
@@ -41,6 +42,8 @@ if (is.null(opt$ne)) opt$ne <- 1e4
 if (is.null(opt$verbose)) opt$verbose <- FALSE
 if (is.null(opt$pool)) opt$pool <- FALSE
 if (is.null(opt$offset)) opt$offset <- 0
+if (is.null(opt$lendepth)) opt$lendepth <- 0
+if (is.null(opt$errdepth)) opt$errdepth <- 0.05
 
 # switch panc to 1-panc for old consistency to previous version
 opt$panc <- 1-opt$panc
@@ -49,7 +52,6 @@ opt$panc <- 1-opt$panc
 fout_log <- paste(opt$out, ".log", sep="", collapse="")
 fout_real <- opt$out
 nsites <- opt$sites
-mdepth <- opt$depth
 mbqual <- opt$qual
 K <- opt$ksfs
 Ne <- opt$ne
@@ -86,7 +88,12 @@ if (opt$verbose & !is.null(opt$out)) {
 }
 
 # sample depths and qualities, the latter are centered around phred score = 10
-depth <- matrix(rpois(nsites*nsams, mdepth), nrow=nsams, ncol=nsites)
+
+rangeLams <- opt$depth+(opt$depth*opt$errdepth*c(-1,1))
+sampledLams <- runif(nsites*nsams, min=rangeLams[1], max=rangeLams[2])
+
+depth <- matrix(rpois(sampledLams, sampledLams), nrow=nsams, ncol=nsites)
+rm(sampledLams)
 
 if (opt$lendepth>0) {
 
@@ -124,7 +131,6 @@ if (opt$lendepth>0) {
 				toBeTaken <- setdiff(toBeTaken, ind)
 				i <- length(indexes) + 1 
 			}
-			count <- count + 1
 		}
 		conDepth[j,] <- depth[j,indexes]
 	}

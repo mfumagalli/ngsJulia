@@ -13,7 +13,7 @@ spec=matrix(c(
 	      'copy', 'c', 1, "character", "ploidy per sample, e.g. 2x3,4 is 2,2,2,4",
 	      'sites', 's', 2, "integer", "number of sites [default 1,000]",
 	      'depth', 'd', 2, "double", "mean depth per sample [default 20.0]",
-	      'lendepth', 'l', "integer", "length of sites with increasing/decreasing depth [default 1, disabled]",
+	      'lendepth', 'l', "integer", "mean length of sites with increasing/decreasing depth [default 0, disabled]",
 	      'qual', 'q', 2, "integer", "mean base quality in phred score [default 20]",
 	      'ksfs', 'k', 2, "double", "coeff. for shape of SFS default [1.0]",
 	      'panc', 'a', 2, "double", "probability that ancestor state is correct [1.0]",
@@ -88,9 +88,7 @@ if (opt$verbose & !is.null(opt$out)) {
 # sample depths and qualities, the latter are centered around phred score = 10
 depth <- matrix(rpois(nsites*nsams, mdepth), nrow=nsams, ncol=nsites)
 
-lenSeg <- opt$lendepth
-
-if (lenSeg>1) {
+if (opt$lendepth>0) {
 
 	conDepth <- matrix(NA, nrow=nrow(depth), ncol=ncol(depth))
 	conDepth[,1] <- depth[,1]
@@ -102,6 +100,8 @@ if (lenSeg>1) {
 
 		i <- 2
 		while (i <= nsites) {
+
+			lenSeg <- rpois(1, opt$lendepth)
 
 			increasing <- sample(c(0,1),1)
 

@@ -13,6 +13,7 @@ spec=matrix(c(
 	      'copy', 'c', 1, "character", "ploidy per sample, e.g. 2x3,4 is 2,2,2,4",
 	      'sites', 's', 2, "integer", "number of sites [default 1,000]",
 	      'depth', 'd', 2, "double", "mean depth per sample [default 20.0]",
+	      'lendepth', 'l', "integer", "length of sites with increasing/decreasing depth [default 1, disabled]",
 	      'qual', 'q', 2, "integer", "mean base quality in phred score [default 20]",
 	      'ksfs', 'k', 2, "double", "coeff. for shape of SFS default [1.0]",
 	      'panc', 'a', 2, "double", "probability that ancestor state is correct [1.0]",
@@ -22,7 +23,7 @@ spec=matrix(c(
 	      'verbose', 'v', 0, "logical", "verbose creates log file",
 	      'offset', 'f', 0, "integer", "offset value for genomic position"
 	      ), byrow=TRUE, ncol=5)
-opt = getopt(spec)
+opt <- getopt(spec)
 
 # help
 if ( !is.null(opt$help) ) {
@@ -31,38 +32,37 @@ if ( !is.null(opt$help) ) {
 }
 
 # default values
-if (is.null(opt$sites)) opt$sites=1e3
-if (is.null(opt$depth)) opt$depth=20.0
-if (is.null(opt$qual)) opt$qual=20
-if (is.null(opt$ksfs)) opt$ksfs=1.0
-if (is.null(opt$panc)) opt$panc=1.0
-if (is.null(opt$ne)) opt$ne=1e4
-if (is.null(opt$verbose)) opt$verbose=FALSE
-if (is.null(opt$pool)) opt$pool=FALSE
-if (is.null(opt$offset)) opt$offset=0
-# if (is.null(opt$out))
+if (is.null(opt$sites)) opt$sites <- 1e3
+if (is.null(opt$depth)) opt$depth <- 20.0
+if (is.null(opt$qual)) opt$qual <- 20
+if (is.null(opt$ksfs)) opt$ksfs <- 1.0
+if (is.null(opt$panc)) opt$panc <- 1.0
+if (is.null(opt$ne)) opt$ne <- 1e4
+if (is.null(opt$verbose)) opt$verbose <- FALSE
+if (is.null(opt$pool)) opt$pool <- FALSE
+if (is.null(opt$offset)) opt$offset <- 0
 
 # switch panc to 1-panc for old consistency to previous version
-opt$panc=1-opt$panc
+opt$panc <- 1-opt$panc
 
 # assign to old variables (then in the future change this)
-fout_log=paste(opt$out, ".log", sep="", collapse="")
-fout_real=opt$out
-nsites=opt$sites
-mdepth=opt$depth
-mbqual=opt$qual
-K=opt$ksfs
-Ne=opt$ne
+fout_log <- paste(opt$out, ".log", sep="", collapse="")
+fout_real <- opt$out
+nsites <- opt$sites
+mdepth <- opt$depth
+mbqual <- opt$qual
+K <- opt$ksfs
+Ne <- opt$ne
 
 # parse ncopy
-ncopy=c()
-tmp=strsplit(opt$copy, split=",")[[1]]
+ncopy <- c()
+tmp <- strsplit(opt$copy, split=",")[[1]]
 for (i in 1:length(tmp)) {
-	tmp2=strsplit(tmp[i], split="x")[[1]]
+	tmp2 <- strsplit(tmp[i], split="x")[[1]]
 	if (length(tmp2)>1) {
-		ncopy=c(ncopy, rep(tmp2[1], times=tmp2[2]))
+		ncopy <- c(ncopy, rep(tmp2[1], times=tmp2[2]))
 	} else {
-		ncopy=c(ncopy, tmp2[1])
+		ncopy <- c(ncopy, tmp2[1])
 	}
 }
 rm(tmp); rm(tmp2)
@@ -75,7 +75,7 @@ if (max(ncopy)>5) {
 if (!is.null(opt$out)) cat("", file=fout_real)
 
 # how many samples
-nsams=length(ncopy)
+nsams <- length(ncopy)
 
 # write to log file
 if (opt$verbose & !is.null(opt$out)) {
@@ -86,12 +86,56 @@ if (opt$verbose & !is.null(opt$out)) {
 }
 
 # sample depths and qualities, the latter are centered around phred score = 10
-depth=matrix(rpois(nsites*nsams, mdepth), nrow=nsams, ncol=nsites)
+depth <- matrix(rpois(nsites*nsams, mdepth), nrow=nsams, ncol=nsites)
 
-# write.table(depth, sep="\t", quote=F, col.names=F, row.names=F)
+lenSeg <- opt$lendepth
+
+if (lenSeg>1) {
+
+	conDepth <- matrix(NA, nrow=nrow(depth), ncol=ncol(depth))
+	conDepth[,1] <- depth[,1]
+
+	for (j in 1:nsams) {
+
+		indexes <- c(1)
+		toBeTaken <- 2:nsites
+
+		i <- 2
+		while (i <= nsites) {
+
+			increasing <- sample(c(0,1),1)
+
+			ind <- c()
+			if (increasing) {
+				ind <- toBeTaken[which(depth[j,toBeTaken]>=depth[j,i])[1:lenSeg]]
+			} else {
+				ind <- toBeTaken[which(depth[j,toBeTaken]<=depth[j,i])[1:lenSeg]]
+			}
+			ind <- ind[which(!is.na(ind))]
+		
+			if (length(ind)>0) {
+				if (increasing) {
+					ind <- ind[sort(depth[j,ind], dec=F, index.ret=T)$ix]
+				} else {
+					ind <- ind[sort(depth[j,ind], dec=T, index.ret=T)$ix]
+				}
+
+				indexes <- c(indexes, ind)
+				toBeTaken <- setdiff(toBeTaken, ind)
+				i <- length(indexes) + 1 
+			}
+			count <- count + 1
+		}
+		conDepth[j,] <- depth[j,indexes]
+	}
+depth <- conDepth 
+rm(conDepth)
+}
+
+#write.table(depth, sep="\t", quote=F, col.names=F, row.names=F)
 
 # ascii, already starting at +33
-pscores='!"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_`abcdefghijklmnopqrstuvwxyz{|}~'
+pscores <- '!"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_`abcdefghijklmnopqrstuvwxyz{|}~'
 
 # assuming:
 #ref=sample(c("A","C","G","T"),1)
@@ -99,14 +143,15 @@ pscores='!"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_`abcdefg
 # assume that ref is ancestral and nonref is derived, so at the population level
 #major=ref
 #minor=nonref
-ref="A"
-nonref="C"
+ref <- "A"
+nonref <- "C"
 
 # sampling population allele frequencies
 # Ne=10000
-# all polymoprhic in the population!
-ee=(1/(1:(Ne-1))^(1/K)); ee=ee/sum(ee);
-pder=c(0, ee, 0);
+# all polymorphic in the population!
+ee <- (1/(1:(Ne-1))^(1/K)); 
+ee <-ee/sum(ee);
+pder <- c(0, ee, 0);
 
 # this is the expected p
 #Ep=weighted.mean(seq(0,Ne,1), pder)/Ne
@@ -118,74 +163,67 @@ pder=c(0, ee, 0);
 # ascii phred score
 # http://www.omixon.com/bioinformatics-for-beginners-file-formats-part-2-short-reads/
 
-# use only sites where there is at least 1 read per sample if not pooled, or use the total depth if pool
-#if (opt$pool==FALSE) {
-#	valid=which(apply(X=depth, FUN=min, MAR=2)>0)
-#} else {
-#	# cat(apply(X=depth, FUN=sum, MAR=2))
-#	valid=which(apply(X=depth, FUN=sum, MAR=2)>0)
-#}
-
-# new change, if depth is 0, replace with only 1 read with very low quality
+# if depth is 0, replace with only 1 read with very low quality
 
 #for (i in valid) { # cycle across sites
 for (i in 1:opt$sites) {
 
 	# if pool, initialise
-	pool_alls=pool_bqs=c()
+	pool_alls <- pool_bqs <- c()
 
 	# first elements of line: chrom, pos, reference
-	linea=c(paste("copy_",opt$copy,sep="",collapse=""), i+opt$offset, ref)
+	linea <- c(paste("copy_",opt$copy,sep="",collapse=""), i+opt$offset, ref)
 	# for real data output
-	linea_real=c(linea, nonref)
+	linea_real <- c(linea, nonref)
 
 	# count derived alleles and print on file
-	daf=0
+	daf <- 0
 
 	# sample derived allele frequency
-	qq=sample(x=seq(0,Ne,1),size=1,prob=pder)/Ne
+	qq <- sample(x=seq(0,Ne,1),size=1,prob=pder)/Ne
 
 	# probability of incorrectly assigning the ancestral state
-	if (sample(x=c(0,1),size=1,prob=c(1-opt$panc,opt$panc),repl=F)) qq=1-qq
+	if (sample(x=c(0,1),size=1,prob=c(1-opt$panc,opt$panc),repl=F)) qq <- 1-qq
 
-	pp=1-qq
-	linea_real=c(linea_real, qq)
+	pp <- 1-qq
+	linea_real <- c(linea_real, qq)
 
 	for (n in 1:nsams) { # cycle across samples
 
-		alls=bqs=c() # init bases and qualities
+		alls <- bqs <- c() # init bases and qualities
 
 		# haploid case
 		if (ncopy[n]==1) {
 
 			# genotype probs assuming HWE
-			priors=c(pp, qq);
+			priors <- c(pp, qq);
 
 			# sample genotypes according to previously calculated probs
-			genos=c("A", "C")
-			geno=genos[sample(1:length(genos),1, prob=priors)]
+			genos <- c("A", "C")
+			geno <- genos[sample(1:length(genos),1, prob=priors)]
 
 			# daf
-			if (geno=="C") daf=daf+1
+			if (geno=="C") daf <- daf+1
 
 			if (depth[n,i]>0) { # if data
 
               		  	# sample base qualities for all reads around the mean
-                		ibq=round(rnorm(mean=mbqual,sd=2,n=depth[n,i]))
-				ibq[which(ibq<0)]=0
+                		ibq <- round(rnorm(mean=mbqual,sd=2,n=depth[n,i]))
+				ibq[which(ibq<0)] <- 0
 
 				# for each read
 				for (j in 1:depth[n,i]) {
 
 					# base quality in ASCII character
-					bqs=c(bqs, substring(pscores, ibq[j]-1, ibq[j]-1))
+					bqs <- c(bqs, substring(pscores, ibq[j]-1, ibq[j]-1))
 
 					# from base quality calculate base probability
-		      			ps=ibq[j]; p=10^(-(ps/10)) # probability
+		      			ps <- ibq[j]
+					p <- 10^(-(ps/10)) # probability
 
 					# probabilities of sampling bases depending of base qualities
-					if (geno=="A") probs=c( 1-p, p/3, p/3, p/3);
-					if (geno=="C") probs=c( p/3, 1-p, p/3, p/3)
+					if (geno=="A") probs <- c( 1-p, p/3, p/3, p/3);
+					if (geno=="C") probs <- c( p/3, 1-p, p/3, p/3)
 
 					# sample reads and concatenate
 					alls=c(alls, sample(x=c(".","C","G","T"), size=1, prob=probs))

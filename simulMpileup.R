@@ -16,6 +16,7 @@ spec=matrix(c(
 	      'lendepth', 'l', 2, "integer", "mean length of sites with increasing/decreasing depth [default 0, disabled]",
 	      'errdepth', 'e', 2, "double", "error rate in mean depth [default 0.05]",
 	      'qual', 'q', 2, "integer", "mean base quality in phred score [default 20]",
+	      'pvar', 'r', 2, "double", "probability that site is variabile in the population [1.0]",
 	      'ksfs', 'k', 2, "double", "coeff. for shape of SFS default [1.0]",
 	      'panc', 'a', 2, "double", "probability that ancestor state is correct [1.0]",
 	      'ne', 'n', 2, "integer", "effective population size [default 10,000]",
@@ -38,6 +39,7 @@ if (is.null(opt$depth)) opt$depth <- 20.0
 if (is.null(opt$qual)) opt$qual <- 20
 if (is.null(opt$ksfs)) opt$ksfs <- 1.0
 if (is.null(opt$panc)) opt$panc <- 1.0
+if (is.null(opt$pvar)) opt$pvar <- 1.0
 if (is.null(opt$ne)) opt$ne <- 1e4
 if (is.null(opt$verbose)) opt$verbose <- FALSE
 if (is.null(opt$pool)) opt$pool <- FALSE
@@ -152,12 +154,14 @@ pscores <- '!"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_`abcd
 ref <- "A"
 nonref <- "C"
 
-# sampling population allele frequencies
-# Ne=10000
-# all polymorphic in the population!
-ee <- (1/(1:(Ne-1))^(1/K)); 
-ee <-ee/sum(ee);
-pder <- c(0, ee, 0);
+# population allele frequencies
+# if polymorphic
+ee <- (1/(1:(Ne-1))^(1/K))
+ee <-ee/sum(ee)
+# the sum must be = pvar
+ee <- ee*pvar
+# add that some sites might not be polymorphic in the populationder <- c(0, ee, 0)
+pder <-c( (1-opt$pvar)*(9/10), ee, (1-opt$pvar)*(1/10) )
 
 # this is the expected p
 #Ep=weighted.mean(seq(0,Ne,1), pder)/Ne
@@ -214,7 +218,7 @@ for (i in 1:opt$sites) {
 			if (depth[n,i]>0) { # if data
 
               		  	# sample base qualities for all reads around the mean
-                		ibq <- round(rnorm(mean=mbqual,sd=2,n=depth[n,i]))
+                		ibq <- round(rnorm(mean=mbqual,sd=5,n=depth[n,i]))
 				ibq[which(ibq<0)] <- 0
 
 				# for each read

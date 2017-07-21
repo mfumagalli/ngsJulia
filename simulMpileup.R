@@ -159,7 +159,7 @@ nonref <- "C"
 ee <- (1/(1:(Ne-1))^(1/K))
 ee <-ee/sum(ee)
 # the sum must be = pvar
-ee <- ee*pvar
+ee <- ee*(opt$pvar)
 # add that some sites might not be polymorphic in the populationder <- c(0, ee, 0)
 pder <-c( (1-opt$pvar)*(9/10), ee, (1-opt$pvar)*(1/10) )
 

@@ -218,7 +218,7 @@ for (i in 1:opt$sites) {
 			if (depth[n,i]>0) { # if data
 
               		  	# sample base qualities for all reads around the mean
-                		ibq <- round(rnorm(mean=mbqual,sd=5,n=depth[n,i]))
+                		ibq <- round(rnorm(mean=mbqual,sd=2,n=depth[n,i]))
 				ibq[which(ibq<0)] <- 0
 
 				# for each read

@@ -28,7 +28,7 @@ function calcGenoLogLike1(read::Reads, site::Site, phredScale::Int64=33)
 
 			sublike = 0.0
 			if alleles[j1]==read.base[i]
-				sublike += (1-bP)
+				sublike += 1-(bP)
 			else
 				sublike += (bP/3)
 			end
@@ -51,7 +51,7 @@ function calcGenoLogLike1_Bia(read::Reads, site::Site, major::Int64, minor::Int6
 		bP::Float64 = 10^((phredScale - Int64(read.baseQuality[i]))/10)
 		sublike = 0.0;
 		if read.base[i]==alleles[major] || read.base[i]==alleles[minor] 
-			sublike += (1-bP)
+			sublike += 1-(bP)
 		else
 			sublike += (bP/3)
 		end
@@ -72,7 +72,7 @@ function calcGenoLogLike1_Tria(read::Reads, site::Site, major::Int64, minor::Int
 		bP::Float64 = 10^((phredScale - Int64(read.baseQuality[i]))/10)
 		sublike = 0.0
 		if read.base[i]==alleles[major] || read.base[i]==alleles[minor] || read.base[i]==alleles[minor2]
-			sublike += (1-bP)
+			sublike += 1-(bP)
 		else
 			sublike += (bP/3)
 		end
@@ -98,7 +98,7 @@ function calcGenoLogLike1_MajorMinor(read::Reads, site::Site, major::Int64, mino
 			bP::Float64 = 10^((phredScale - Int64(read.baseQuality[i]))/10);
 			sublike = 0.0;
 			if alleles[j1]==read.base[i]
-				sublike += (1-bP);
+				sublike += 1-(bP);
 			else
 				sublike += (bP/3);
 			end
@@ -128,12 +128,12 @@ function calcGenoLogLike2_MajorMinor(read::Reads, site::Site, major::Int64, mino
 
 			sublike = 0.0;
 	                if alleles[j1]==read.base[i]
-				sublike += (1-bP)/2;
+				sublike += 1-(bP/2);
 			else
 				sublike += (bP/3)/2;
 			end
 			if alleles[j2]==read.base[i]
-				sublike += (1-bP)/2;
+				sublike += 1-(bP/2);
 			else
 				sublike += (bP/3)/2;
 			end
@@ -161,17 +161,17 @@ function calcGenoLogLike3_MajorMinor(read::Reads, site::Site, major::Int64, mino
 
 	                sublike = 0.0;
 			if alleles[j1]==read.base[i]
-				sublike += (1 - bP)/3;
+				sublike += 1 - (bP/3);
 			else
 				sublike += ( bP/3 )/3;
 			end
 			if alleles[j2]==read.base[i]
-				sublike += (1 - bP)/3;
+				sublike += 1 - (bP/3);
 			else
 				sublike += ( bP/3 )/3;
 			end
 			if alleles[j3]==read.base[i]
-				sublike += (1 - bP)/3;
+				sublike += 1 - (bP/3);
 		    	else
 				sublike += ( bP/3 )/3;
 			end
@@ -199,22 +199,22 @@ function calcGenoLogLike4_MajorMinor(read::Reads, site::Site, major::Int64, mino
 
 			sublike = 0.0;
 			if alleles[j1]==read.base[i]	              
-				sublike += (1 - bP)/4;  
+				sublike += 1 - (bP/4);  
 			else   
 				sublike += ( bP/3 )/4;
 			end
 			if alleles[j2]==read.base[i]
-				sublike += (1 - bP)/4;
+				sublike += 1 - (bP/4);
 			else
 				sublike += (bP/3)/4;
 			end
 			if alleles[j3]==read.base[i]
-				sublike += (1-bP)/4;
+				sublike += 1 - (bP/4);
 			else
 				sublike += (bP/3)/4;
 			end
 			if alleles[j4]==read.base[i]
-				sublike += (1-bP)/4;
+				sublike += 1 - (bP/4);
 			else
 				sublike += (bP/3)/4;
 			end
@@ -241,27 +241,27 @@ function calcGenoLogLike5_MajorMinor(read::Reads, site::Site, major::Int64, mino
 
 			sublike = 0.0;
 			if alleles[j1]==read.base[i]
-				sublike += (1-bP)/5;
+				sublike += 1-(bP/5);
 			else
 				sublike += (bP/3)/5;
 			end
 			if alleles[j2]==read.base[i]
-				sublike += (1-bP)/5;
+				sublike += 1-(bP/5);
 			else
 				sublike += (bP/3)/5;
 			end
 			if alleles[j3]==read.base[i]
-				sublike += (1-bP)/5;
+				sublike += 1-(bP/5);
 			else
 				sublike += (bP/3)/5;
 			end
 			if alleles[j4]==read.base[i]
-				sublike += (1-bP)/5;
+				sublike += 1-(bP/5);
 			else
 				sublike += (bP/3)/5;
 			end
 			if alleles[j5]==read.base[i]
-				sublike += (1-bP)/5;
+				sublike += 1-(bP/5);
 			else
 				sublike += (bP/3)/5;
 			end
@@ -288,32 +288,32 @@ function calcGenoLogLike6_MajorMinor(read::Reads, site::Site, major::Int64, mino
 			sublike = 0.0;
 			
 			if alleles[j1]==read.base[i]
-				sublike += (1-bP)/6
-			else																			
+				sublike += 1-(bP/6)
+			else									
 				sublike += (bP/3)/6
 			end
 			if alleles[j2]==read.base[i]
-				sublike += (1-bP)/6
+				sublike += 1-(bP/6)
 			else
 				sublike += (bP/3)/6
 			end
 			if alleles[j3]==read.base[i]
-				sublike += (1-bP)/6
+				sublike += 1-(bP/6)
 			else
 				sublike += (bP/3)/6
 			end
 			if alleles[j4]==read.base[i]
-				sublike += (1-bP)/6
+				sublike += 1-(bP/6)
 			else
 				sublike += (bP/3)/6
 			end
 			if alleles[j5]==read.base[i]
-				sublike += (1-bP)/6
+				sublike += 1-(bP/6)
 			else
 				sublike += (bP/3)/6
 			end
 			if alleles[j6]==read.base[i]
-				sublike += (1-bP)/6
+				sublike += 1-(bP/6)
 			else
 				sublike += (bP/3)/6
 			end
@@ -341,37 +341,37 @@ function calcGenoLogLike7_MajorMinor(read::Reads, site::Site, major::Int64, mino
                         sublike = 0.0;
 
                         if alleles[j1]==read.base[i]
-                                sublike += (1-bP)/ploidy
+                                sublike += 1-(bP/ploidy)
                         else                                                                                                                                              
                                 sublike += (bP/3)/ploidy
                         end
                         if alleles[j2]==read.base[i]
-                                sublike += (1-bP)/ploidy
+                                sublike += 1-(bP/ploidy)
                         else
                                 sublike += (bP/3)/ploidy
                         end
                         if alleles[j3]==read.base[i]
-                                sublike += (1-bP)/ploidy
+                                sublike += 1-(bP/ploidy)
                         else
                                 sublike += (bP/3)/ploidy
                         end
                         if alleles[j4]==read.base[i]
-                                sublike += (1-bP)/ploidy
+                                sublike += 1-(bP/ploidy)
                         else
                                 sublike += (bP/3)/ploidy
                         end
                         if alleles[j5]==read.base[i]
-                                sublike += (1-bP)/ploidy
+                                sublike += 1-(bP/ploidy)
                         else
                                 sublike += (bP/3)/ploidy
                         end
                         if alleles[j6]==read.base[i]
-                                sublike += (1-bP)/ploidy
+                                sublike += 1-(bP/ploidy)
                         else
                                 sublike += (bP/3)/ploidy
                         end
 			if alleles[j7]==read.base[i]
-                                sublike += (1-bP)/ploidy
+                                sublike += 1-(bP/ploidy)
                         else
                                 sublike += (bP/3)/ploidy
                         end
@@ -399,42 +399,42 @@ function calcGenoLogLike8_MajorMinor(read::Reads, site::Site, major::Int64, mino
                         sublike = 0.0;
 
                         if alleles[j1]==read.base[i]
-                                sublike += (1-bP)/ploidy
+                                sublike += 1-(bP/ploidy)
                         else                                                                                                                                              
                                 sublike += (bP/3)/ploidy
                         end
                         if alleles[j2]==read.base[i]
-                                sublike += (1-bP)/ploidy
+                                sublike += 1-(bP/ploidy)
                         else
                                 sublike += (bP/3)/ploidy
                         end
                         if alleles[j3]==read.base[i]
-                                sublike += (1-bP)/ploidy
+                                sublike += 1-(bP/ploidy)
                         else
                                 sublike += (bP/3)/ploidy
                         end
                         if alleles[j4]==read.base[i]
-                                sublike += (1-bP)/ploidy
+                                sublike += 1-(bP/ploidy)
                         else
                                 sublike += (bP/3)/ploidy
                         end
                         if alleles[j5]==read.base[i]
-                                sublike += (1-bP)/ploidy
+                                sublike += 1-(bP/ploidy)
                         else
                                 sublike += (bP/3)/ploidy
                         end
 			if alleles[j6]==read.base[i]
-                                sublike += (1-bP)/ploidy
+                                sublike += 1-(bP/ploidy)
                         else
                                 sublike += (bP/3)/ploidy
                         end
                         if alleles[j7]==read.base[i]
-                                sublike += (1-bP)/ploidy
+                                sublike += 1-(bP/ploidy)
                         else
                                 sublike += (bP/3)/ploidy
                         end
 			if alleles[j8]==read.base[i]
-                                sublike += (1-bP)/ploidy
+                                sublike += 1-(bP/ploidy)
                         else
                                 sublike += (bP/3)/ploidy
                         end
@@ -443,7 +443,6 @@ function calcGenoLogLike8_MajorMinor(read::Reads, site::Site, major::Int64, mino
         end
         return likes
 end
-
 
 
 # convert symbols in pileup to nucleotides

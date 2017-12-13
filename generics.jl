@@ -169,7 +169,7 @@ function calcGenoLogLike3_MajorMinor(read::Reads, site::Site, major::Int64, mino
 				sublike += (bP/3)/ploidy;
 			end
 			if alleles[j2]==read.base[i]
-				sublike += (1-bP)/ploidy);
+				sublike += (1-bP)/ploidy;
 			else
 				sublike += (bP/3)/ploidy;
 			end
@@ -213,7 +213,7 @@ function calcGenoLogLike4_MajorMinor(read::Reads, site::Site, major::Int64, mino
 				sublike += (bP/3)/ploidy;
 			end
 			if alleles[j3]==read.base[i]
-				sublike += (1-bP)/ploidy);
+				sublike += (1-bP)/ploidy;
 			else
 				sublike += (bP/3)/ploidy;
 			end

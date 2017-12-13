@@ -22,7 +22,7 @@ Site() = Site("chrom", 0, 'N');
 
 # --------------------
 
-abstract Sequence
+abstract type Sequence end
 
 type Genotype <: Sequence
 	ploidy::Int64

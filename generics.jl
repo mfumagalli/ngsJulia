@@ -88,6 +88,7 @@ function calcGenoLogLike1_MajorMinor(read::Reads, site::Site, major::Int64, mino
 	alleles = ['A', 'C', 'G', 'T'];
 	likes = zeros(2);
 	iter = 0;
+	ploidy = 1;
 
 	# cycle across all possible genotypes
 	for (j1) = ((major), (minor))
@@ -98,9 +99,9 @@ function calcGenoLogLike1_MajorMinor(read::Reads, site::Site, major::Int64, mino
 			bP::Float64 = 10^((phredScale - Int64(read.baseQuality[i]))/10);
 			sublike = 0.0;
 			if alleles[j1]==read.base[i]
-				sublike += 1-(bP);
+				sublike += 1-(bP/ploidy);
 			else
-				sublike += (bP/3);
+				sublike += (bP/3)/ploidy;
 			end
 			likes[iter] += log(sublike);
 		end
@@ -115,6 +116,7 @@ function calcGenoLogLike2_MajorMinor(read::Reads, site::Site, major::Int64, mino
 	likes = zeros(3);
 	alleles = ['A', 'C', 'G', 'T'];
 	iter = 0;
+	ploidy = 2
 
 	# cycle across only considered genotypes
 	for (j1,j2) = ((major,major),(major,minor),(minor,minor))
@@ -128,14 +130,14 @@ function calcGenoLogLike2_MajorMinor(read::Reads, site::Site, major::Int64, mino
 
 			sublike = 0.0;
 	                if alleles[j1]==read.base[i]
-				sublike += 1-(bP/2);
+				sublike += 1-(bP/ploidy);
 			else
-				sublike += (bP/3)/2;
+				sublike += (bP/3)/ploidy;
 			end
 			if alleles[j2]==read.base[i]
-				sublike += 1-(bP/2);
+				sublike += 1-(bP/ploidy);
 			else
-				sublike += (bP/3)/2;
+				sublike += (bP/3)/ploidy;
 			end
 			likes[iter] += log(sublike);
 		end
@@ -149,6 +151,7 @@ function calcGenoLogLike3_MajorMinor(read::Reads, site::Site, major::Int64, mino
 	likes = zeros(4);
 	alleles = ['A', 'C', 'G', 'T'];
 	iter = 0;
+	ploidy = 3
 
 	# cycle across only considered genotypes
 	for (j1,j2,j3) = ((major,major,major),(major,major,minor),(major,minor,minor),(minor,minor,minor))
@@ -161,19 +164,19 @@ function calcGenoLogLike3_MajorMinor(read::Reads, site::Site, major::Int64, mino
 
 	                sublike = 0.0;
 			if alleles[j1]==read.base[i]
-				sublike += 1 - (bP/3);
+				sublike += 1-(bP/ploidy);
 			else
-				sublike += ( bP/3 )/3;
+				sublike += (bP/3)/ploidy;
 			end
 			if alleles[j2]==read.base[i]
-				sublike += 1 - (bP/3);
+				sublike += 1 - (bP/ploidy);
 			else
-				sublike += ( bP/3 )/3;
+				sublike += (bP/3)/ploidy;
 			end
 			if alleles[j3]==read.base[i]
-				sublike += 1 - (bP/3);
+				sublike += 1 - (bP/ploidy);
 		    	else
-				sublike += ( bP/3 )/3;
+				sublike += (bP/3)/ploidy;
 			end
 	 		likes[iter] += log(sublike);
 		end
@@ -188,6 +191,7 @@ function calcGenoLogLike4_MajorMinor(read::Reads, site::Site, major::Int64, mino
 	likes = zeros(5);
 	alleles = ['A','C','G','T'];
 	iter = 0;
+	ploidy = 4;
 
 	# cycle across only considered genotypes
 	for (j1,j2,j3,j4) = ((major,major,major,major),(major,major,major,minor),(major,major,minor,minor),(major,minor,minor,minor),(minor,minor,minor,minor))
@@ -199,24 +203,24 @@ function calcGenoLogLike4_MajorMinor(read::Reads, site::Site, major::Int64, mino
 
 			sublike = 0.0;
 			if alleles[j1]==read.base[i]	              
-				sublike += 1 - (bP/4);  
+				sublike += 1 - (bP/ploidy);  
 			else   
-				sublike += ( bP/3 )/4;
+				sublike += (bP/3)/ploidy;
 			end
 			if alleles[j2]==read.base[i]
-				sublike += 1 - (bP/4);
+				sublike += 1 - (bP/ploidy);
 			else
-				sublike += (bP/3)/4;
+				sublike += (bP/3)/ploidy;
 			end
 			if alleles[j3]==read.base[i]
-				sublike += 1 - (bP/4);
+				sublike += 1 - (bP/ploidy);
 			else
-				sublike += (bP/3)/4;
+				sublike += (bP/3)/ploidy;
 			end
 			if alleles[j4]==read.base[i]
-				sublike += 1 - (bP/4);
+				sublike += 1 - (bP/ploidy);
 			else
-				sublike += (bP/3)/4;
+				sublike += (bP/3)/ploidy;
 			end
 			likes[iter] += log(sublike);
 		end
@@ -230,6 +234,7 @@ function calcGenoLogLike5_MajorMinor(read::Reads, site::Site, major::Int64, mino
 	likes = zeros(6);
 	alleles = ['A','C','G','T'];
 	iter = 0;
+	ploidy = 5
 
 	# cycle across only considered genotypes
         for (j1,j2,j3,j4,j5) = ((major,major,major,major,major),(major,major,major,major,minor),(major,major,major,minor,minor),(major,major,minor,minor,minor),(major,minor,minor,minor,minor),(minor,minor,minor,minor,minor))
@@ -241,29 +246,29 @@ function calcGenoLogLike5_MajorMinor(read::Reads, site::Site, major::Int64, mino
 
 			sublike = 0.0;
 			if alleles[j1]==read.base[i]
-				sublike += 1-(bP/5);
+				sublike += 1-(bP/ploidy);
 			else
-				sublike += (bP/3)/5;
+				sublike += (bP/3)/ploidy;
 			end
 			if alleles[j2]==read.base[i]
-				sublike += 1-(bP/5);
+				sublike += 1-(bP/ploidy);
 			else
-				sublike += (bP/3)/5;
+				sublike += (bP/3)/ploidy;
 			end
 			if alleles[j3]==read.base[i]
-				sublike += 1-(bP/5);
+				sublike += 1-(bP/ploidy);
 			else
-				sublike += (bP/3)/5;
+				sublike += (bP/3)/ploidy;
 			end
 			if alleles[j4]==read.base[i]
-				sublike += 1-(bP/5);
+				sublike += 1-(bP/ploidy);
 			else
-				sublike += (bP/3)/5;
+				sublike += (bP/3)/ploidy;
 			end
 			if alleles[j5]==read.base[i]
-				sublike += 1-(bP/5);
+				sublike += 1-(bP/ploidy);
 			else
-				sublike += (bP/3)/5;
+				sublike += (bP/3)/ploidy;
 			end
 			likes[iter] += log(sublike);
 		end
@@ -277,6 +282,7 @@ function calcGenoLogLike6_MajorMinor(read::Reads, site::Site, major::Int64, mino
 	likes = zeros(7);
 	alleles = ['A','C','G','T'];
 	iter = 0;
+	ploidy = 6
 	
 	# cycle across only considered genotypes
 	for (j1,j2,j3,j4,j5,j6) = ((major,major,major,major,major,major),(major,major,major,major,major,minor),(major,major,major,major,minor,minor),(major,major,major,minor,minor,minor),(major,major,minor,minor,minor,minor),(major,minor,minor,minor,minor,minor),(minor,minor,minor,minor,minor,minor))
@@ -288,34 +294,34 @@ function calcGenoLogLike6_MajorMinor(read::Reads, site::Site, major::Int64, mino
 			sublike = 0.0;
 			
 			if alleles[j1]==read.base[i]
-				sublike += 1-(bP/6)
+				sublike += 1-(bP/ploidy)
 			else									
-				sublike += (bP/3)/6
+				sublike += (bP/3)/ploidy
 			end
 			if alleles[j2]==read.base[i]
-				sublike += 1-(bP/6)
+				sublike += 1-(bP/ploidy)
 			else
-				sublike += (bP/3)/6
+				sublike += (bP/3)/ploidy
 			end
 			if alleles[j3]==read.base[i]
-				sublike += 1-(bP/6)
+				sublike += 1-(bP/ploidy)
 			else
-				sublike += (bP/3)/6
+				sublike += (bP/3)/ploidy
 			end
 			if alleles[j4]==read.base[i]
-				sublike += 1-(bP/6)
+				sublike += 1-(bP/ploidy)
 			else
-				sublike += (bP/3)/6
+				sublike += (bP/3)/ploidy
 			end
 			if alleles[j5]==read.base[i]
-				sublike += 1-(bP/6)
+				sublike += 1-(bP/ploidy)
 			else
-				sublike += (bP/3)/6
+				sublike += (bP/3)/ploidy
 			end
 			if alleles[j6]==read.base[i]
-				sublike += 1-(bP/6)
+				sublike += 1-(bP/ploidy)
 			else
-				sublike += (bP/3)/6
+				sublike += (bP/3)/ploidy
 			end
 			likes[iter] += log(sublike)
 		end

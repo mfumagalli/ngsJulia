@@ -85,10 +85,10 @@ end
 # calculate genotype likelihoods (in ln format) in case of haploids for Major and Minor
 function calcGenoLogLike1_MajorMinor(read::Reads, site::Site, major::Int64, minor::Int64, phredScale::Int64=33)
 
-	alleles = ['A', 'C', 'G', 'T'];
-	likes = zeros(2);
-	iter = 0;
-	ploidy = 1;
+	alleles = ['A', 'C', 'G', 'T']
+	likes = zeros(2)
+	iter = 0
+	ploidy = 1
 
 	# cycle across all possible genotypes
 	for (j1) = ((major), (minor))
@@ -96,53 +96,53 @@ function calcGenoLogLike1_MajorMinor(read::Reads, site::Site, major::Int64, mino
 	        # cycle across all reads
 		for i = 1:length(read.base)
 			# get base probability from quality score
-			bP = 10^((phredScale - Int64(read.baseQuality[i]))/10);
-			sublike = 0.0;
+			bP = 10^((phredScale - Int64(read.baseQuality[i]))/10)
+			sublike = 0.0
 			if alleles[j1]==read.base[i]
-				sublike += (1-bP)/ploidy;
+				sublike += (1-bP)/ploidy
 			else
-				sublike += (bP/3)/ploidy;
+				sublike += (bP/3)/ploidy
 			end
-			likes[iter] += log(sublike);
+			likes[iter] += log(sublike)
 		end
 	end
-	return likes;
+	return likes
 end;
 
 
 # calculate genotype likelihoods (in ln format) in case of diploids for Major and Minor
 function calcGenoLogLike2_MajorMinor(read::Reads, site::Site, major::Int64, minor::Int64, phredScale::Int64=33)
 
-	likes = zeros(3);
-	alleles = ['A', 'C', 'G', 'T'];
-	iter = 0;
+	likes = zeros(3)
+	alleles = ['A', 'C', 'G', 'T']
+	iter = 0
 	ploidy = 2
 
 	# cycle across only considered genotypes
 	for (j1,j2) = ((major,major),(major,minor),(minor,minor))
 
-		iter += 1;
+		iter += 1
 		# cycle across all reads
 		for i = 1:length(read.base)
 
 			# calculate base probability
-	        	bP = 10^((phredScale - Int64(read.baseQuality[i]))/10);
+	        	bP = 10^((phredScale - Int64(read.baseQuality[i]))/10)
 
-			sublike = 0.0;
+			sublike = 0.0
 	                if alleles[j1]==read.base[i]
-				sublike += (1-bP)/ploidy;
+				sublike += (1-bP)/ploidy
 			else
-				sublike += (bP/3)/ploidy;
+				sublike += (bP/3)/ploidy
 			end
 			if alleles[j2]==read.base[i]
-				sublike += (1-bP)/ploidy;
+				sublike += (1-bP)/ploidy
 			else
-				sublike += (bP/3)/ploidy;
+				sublike += (bP/3)/ploidy
 			end
-			likes[iter] += log(sublike);
+			likes[iter] += log(sublike)
 		end
 	end
-	return likes;
+	return likes
 end;
 
 # calculate genotype likelihoods (in ln format) in case of triploids for Major and Minor

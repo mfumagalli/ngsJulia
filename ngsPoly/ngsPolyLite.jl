@@ -136,12 +136,19 @@ GZip.open(parsed_args["fin"]) do file
 			end
 
 			# is it polymorphic?
+			freqsMLE = [0.0, -1.0]
 			if parsed_args["nGrids"] > 0
 				freqsMLE = optimFreq_MajorMinor(myReads, major, minor, parsed_args["nGrids"]+1)
 			else
-				freqsMLE = optimFreq_MajorMinor_GSS(myReads, major, minor, parsed_args["tol"])
+				if parse_args["tol"] > 0
+					freqsMLE = optimFreq_MajorMinor_GSS(myReads, major, minor, parsed_args["tol"])
+				end
 			end
-			lrtSnp = snpPval_MajorMinor(myReads, freqsMLE[1], major, minor)
+
+			if freqsMLE[2] > -1.0
+				lrtSnp = snpPval_MajorMinor(myReads, freqsMLE[1], major, minor)
+			else
+				lrtSnp = -Inf
 
 			# SNP calling
 			if (lrtSnp>parsed_args["thSnp"] && lrtBia>parsed_args["thBia"] && lrtTria<parsed_args["thTria"] && freqsMLE[2]>=parsed_args["minMaf"] && (1-freqsMLE[2])>=parsed_args["minMaf"]  )

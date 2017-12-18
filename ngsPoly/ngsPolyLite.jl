@@ -23,23 +23,10 @@ if maximum(ploidy) > MAXPLOIDY
 	exit(1)
 end
 
-# open output file if set
-if parsed_args["fout"] != "NULL"
-	fout = GZip.open(parsed_args["fout"], "w")
-	if parsed_args["keepRef"] <= 0
-		write(fout, join( ("##chrom", "pos", "ref", "depth", "major", "minor", "lrtSnp", "lrtBia", "lrtTria", "maf"), "\t"), "\n")
-	else
-		write(fout, join( ("##chrom", "pos", "ref", "depth", "ref", "alt", "lrtSnp", "lrtBia", "lrtTria", "aaf"), "\t"), "\n")
-	end
-end
-
 # open geno likes output file if set
 if parsed_args["fglikes"] != "NULL"
         fglikes = GZip.open(parsed_args["fglikes"], "w")
 end
-
-# maximum not-valid samples
-maxNotPassed = parsed_args["nSamples"] - parsed_args["minSamples"]
 
 # read mpileup
 GZip.open(parsed_args["fin"]) do file
@@ -114,174 +101,89 @@ GZip.open(parsed_args["fin"]) do file
 				tmp_haploid = 0
 			end
 
-			# is this biallelic?
-			if parsed_args["thBia"] > -Inf
-				biaLike = calcGenoLogLike1_Bia(myReads, mySite, major, minor, phredScale=parsed_args["phredscale"])
-				# if you fix the ref/anc, then the "minor" may have greater likelihood, so:
-				if parsed_args["keepRef"] <= 0
-					lrtBia = 2*(biaLike-haploid[major])
-				else
-					lrtBia = maximum(2*(biaLike-haploid[major]), 2*(haploid[major]-biaLike))
+			for n = 1:parsed_args["nSamples"]
+
+				# retrieve bases for this particular sample
+				myReads = Reads(chomp(l[(n-1)*3+5]), chomp(l[(n-1)*3+6]))
+
+				# convert to bases
+                		(bases, indexDelN) = convertSyms(myReads, mySite)
+		       	        myReads = Reads(bases, myReads.baseQuality)
+
+				suberror = 0
+				# check if conversion was successful, if not print to stdout
+				if ( !( length(myReads.base)==length(myReads.baseQuality)))
+					println("Error! conversion:", myReads, mySite, "; sample:", n,"\n", length(myReads.base),"/",length(myReads.baseQuality))
+					suberror = 1
 				end
-			else
-				lrtBia = Inf
-			end
 
-			# is this triallelic?
-			if parsed_args["thTria"] < Inf
-				triaLike = calcGenoLogLike1_Tria(myReads, mySite, major, minor, minor2, phredScale=parsed_args["phredscale"])
-				lrtTria = 2*(triaLike-biaLike)
-			else
-				lrtTria = -Inf
-			end
-
-			# is it polymorphic?
-			freqsMLE = [0.0, -1.0]
-			if parsed_args["nGrids"] > 0
-				freqsMLE = optimFreq_MajorMinor(myReads, major, minor, parsed_args["nGrids"]+1)
-			else
-				if parse_args["tol"] > 0
-					freqsMLE = optimFreq_MajorMinor_GSS(myReads, major, minor, parsed_args["tol"])
+				# filter by quality
+				if (suberror == 0)
+					newReads = filterReads(myReads; phredScale=parsed_args["phredscale"], minBaseQuality=parsed_args["minQ"])
+					myReads = newReads
+					newReads = 0
 				end
-			end
+				sampleDepth = length(myReads.base)
 
-			if freqsMLE[2] > -1.0
-				lrtSnp = snpPval_MajorMinor(myReads, freqsMLE[1], major, minor)
-			else
-				lrtSnp = -Inf
-
-			# SNP calling
-			if (lrtSnp>parsed_args["thSnp"] && lrtBia>parsed_args["thBia"] && lrtTria<parsed_args["thTria"] && freqsMLE[2]>=parsed_args["minMaf"] && (1-freqsMLE[2])>=parsed_args["minMaf"]  )
-
-				# initialise iterator to check that all (or the required number of) samples pass filtering
-				samplesPassed = 0
-				# initiate the per-site likelihoods, rows are samples, columns are ploidies
-				polySite = zeros(parsed_args["nSamples"], length(ploidy))
-				# is it a SNP within each sample?
-				snpSite = zeros(parsed_args["nSamples"])
-
-				for n = 1:parsed_args["nSamples"]
-
-					# retrieve bases for this particular sample
-					myReads = Reads(chomp(l[(n-1)*3+5]), chomp(l[(n-1)*3+6]))
-
-					# convert to bases
-                			(bases, indexDelN) = convertSyms(myReads, mySite)
-		       	        	myReads = Reads(bases, myReads.baseQuality)
-
-					suberror = 0
-					# check if conversion was successful, if not print to stdout
-					if ( !( length(myReads.base)==length(myReads.baseQuality)))
-						println("Error! conversion:", myReads, mySite, "; sample:", n,"\n", length(myReads.base),"/",length(myReads.baseQuality))
-						suberror = 1
-					end
-
-					# filter by quality
+				# check if filtering was successful, if not print to stdout
+				if ( !( length(myReads.base)==length(myReads.baseQuality)))
 					if (suberror == 0)
-						newReads = filterReads(myReads; phredScale=parsed_args["phredscale"], minBaseQuality=parsed_args["minQ"])
-						myReads = newReads
-						newReads = 0
+						println("Error! filtering:", myReads, mySite, "; sample:", n, "\n", length(myReads.base),"/",length(myReads.baseQuality))
 					end
-					sampleDepth = length(myReads.base)
+					suberror = 1
+				end
 
-					# check if filtering was successful, if not print to stdout
-					if ( !( length(myReads.base)==length(myReads.baseQuality)))
-						if (suberror == 0)
-							println("Error! filtering:", myReads, mySite, "; sample:", n, "\n", length(myReads.base),"/",length(myReads.baseQuality))
-						end
-						suberror = 1
-					end
+				# haploid genotype likelihoods
+				if 1 in ploidy
+					haploid = calcGenoLogLike1_MajorMinor(myReads, mySite, major, minor)
+				end
 
-					# skip site if errors in one sample
-					if suberror == 1
-						n = parse_args["nSamples"] + 1 # terminate the loop
-					end
+				# diploid genotype likelihoods
+				if 2 in ploidy
+					diploid = calcGenoLogLike2_MajorMinor(myReads, mySite, major, minor)
+				end
 
-					# increment nr of valid samples
-					if (suberror == 0 && sampleDepth >= parsed_args["minSampleDepth"] && sampleDepth <= parsed_args["maxSampleDepth"])
-						samplesPassed += 1
-					end
+				# triploid genotype likelihoods
+				if 3 in ploidy
+					triploid = calcGenoLogLike3_MajorMinor(myReads, mySite, major, minor)
+				end
 
-					# to save computational time, skip if already enough samples do not pass filtering
-					if (suberror) == 0 && (n - samplesPassed <= maxNotPassed)
+				# tetraploid genotype likelihoods
+				if 4 in ploidy
+					tetraploid = calcGenoLogLike4_MajorMinor(myReads, mySite, major, minor)
+				end
 
-						snpSite[n] = 1
+				# pentaploid genotype likelihoods
+				if 5 in ploidy
+					pentaploid = calcGenoLogLike5_MajorMinor(myReads, mySite, major, minor)
+				end
 
-						# haploid genotype likelihoods
-						if 1 in ploidy
-							haploid = calcGenoLogLike1_MajorMinor(myReads, mySite, major, minor)
-						end
+				# hexaploid genotype likelihoods
+				if 6 in ploidy
+					hexaploid = calcGenoLogLike6_MajorMinor(myReads, mySite, major, minor)
+				end
 
-						# diploid genotype likelihoods
-						if 2 in ploidy
-							diploid = calcGenoLogLike2_MajorMinor(myReads, mySite, major, minor)
-						end
-
-						# triploid genotype likelihoods
-						if 3 in ploidy
-							triploid = calcGenoLogLike3_MajorMinor(myReads, mySite, major, minor)
-						end
-
-						# tetraploid genotype likelihoods
-						if 4 in ploidy
-							tetraploid = calcGenoLogLike4_MajorMinor(myReads, mySite, major, minor)
-						end
-
-						# pentaploid genotype likelihoods
-						if 5 in ploidy
-							pentaploid = calcGenoLogLike5_MajorMinor(myReads, mySite, major, minor)
-						end
-
-						# hexaploid genotype likelihoods
-						if 6 in ploidy
-							hexaploid = calcGenoLogLike6_MajorMinor(myReads, mySite, major, minor)
-						end
-
-						# heptaploid genotype likelihoods
-                                                if 7 in ploidy
-                                                        heptaploid = calcGenoLogLike7_MajorMinor(myReads, mySite, major, minor)
-                                                end
+				# heptaploid genotype likelihoods
+                          	if 7 in ploidy
+            	          		heptaploid = calcGenoLogLike7_MajorMinor(myReads, mySite, major, minor)
+                            	end
 					
-						# octaploid genotype likelihoods
-                                                if 8 in ploidy
-                                                        octaploid = calcGenoLogLike8_MajorMinor(myReads, mySite, major, minor)
-                                                end
+				# octaploid genotype likelihoods
+ 				if 8 in ploidy
+                                	octaploid = calcGenoLogLike8_MajorMinor(myReads, mySite, major, minor)
+                             	end
 
-						# allele frequency (either derived or alternate or minor)
-						freq =  freqsMLE[2]
+				# write genotype likelihoods for each sample, if set
+				if parsed_args["fglikes"]!="NULL"
+					write(fglikes, join( (mySite.chrom, mySite.position, n, mySite.reference, sampleDepth, alleles[major], alleles[minor], join(haploid, "\t"), join(diploid, "\t"), join(triploid, "\t"), join(triploid, "\t"), join(tetraploid, "\t"), join(pentaploid, "\t"), join(hexaploid, "\t"), join(heptaploid, "\t"), join(octaploid, "\t") ), "\t"), "\n")
+				end
 
-						# write genotype likelihoods for each sample, if set
-						if parsed_args["fglikes"]!="NULL"
-							write(fglikes, join( (mySite.chrom, mySite.position, n, mySite.reference, sampleDepth, alleles[major], alleles[minor], join(haploid, "\t"), join(diploid, "\t"), join(triploid, "\t"), join(triploid, "\t"), join(tetraploid, "\t"), join(pentaploid, "\t"), join(hexaploid, "\t"), join(heptaploid, "\t"), join(octaploid, "\t") ), "\t"), "\n")
-						end
-
-					else # if not enough samples
-
-						n = parsed_args["nSamples"] + 1 # terminate the loop
-
-					end # if enough or not samples
-
-				end # for samples
-
-				# test if enough samples passed the filter and if so update the polyLikes matrix
-				if samplesPassed >= parsed_args["minSamples"]
-
-					if parsed_args["fout"]!="NULL"
-						write(fout, join( (mySite.chrom, mySite.position, mySite.reference, globalDepth, alleles[major], alleles[minor], lrtSnp, lrtBia, lrtTria, freqsMLE[2]), "\t"), "\n")
-					end
-
-				end # if completed
-
-			end # if SNP
+			end # for samples
 
 		end # if not filtered for global depth
 
 	end # for lines
 
-end
-
-if parsed_args["fout"] != "NULL"
-	close(fout)
 end
 
 if parsed_args["fglikes"] != "NULL"

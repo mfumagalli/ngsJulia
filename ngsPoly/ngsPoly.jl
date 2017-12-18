@@ -1,8 +1,8 @@
 
 # estimate ploidy from mpileup
 
-include("templates.jl")
-include("generics.jl")
+include("../templates.jl")
+include("../generics.jl")
 include("functions.jl")
 
 alleles = ['A','C','G','T']
@@ -411,8 +411,7 @@ GZip.open(parsed_args["fin"]) do file
 	
 						# write genotype likelihoods for each sample, if set
 						if parsed_args["fglikes"]!="NULL"
-							write(fglikes, join( (mySite.chrom, mySite.position, n, mySite.reference, sampleDepth, alleles[major], alleles[minor], join(haploid, ","), join(diploid, ","), join(triploid, ","), join(triploid, ","), join(tetraploid, ","), join(pentaploid, ","), join(hexaploid, ","), join(heptaploid, ","), join(octaploid, ",") ), ","), "\n")
-							# write(fglikes, join( (mySite.chrom, mySite.position, n, mySite.reference, sampleDepth, alleles[major], alleles[minor], haploid[1], haploid[2], diploid[1], diploid[2], diploid[3], triploid[1], triploid[2], triploid[3], triploid[4], tetraploid[1], tetraploid[2], tetraploid[3], tetraploid[4], tetraploid[5], pentaploid[1], pentaploid[2], pentaploid[3], pentaploid[4], pentaploid[5], pentaploid[6], hexaploid[1], hexaploid[2], hexaploid[3], hexaploid[4], hexaploid[5], hexaploid[6], hexaploid[7], heptaploid[1], heptaploid[2], heptaploid[3], heptaploid[4], heptaploid[5], heptaploid[6], heptaploid[7], heptaploid[8], octaploid[1], octaploid[2], octaploid[3], octaploid[4], octaploid[5], octaploid[6], octaploid[7], octaploid[8], octaploid[9] ), ","), "\n")
+							write(fglikes, join( (mySite.chrom, mySite.position, n, mySite.reference, sampleDepth, alleles[major], alleles[minor], join(haploid, "\t"), join(diploid, "\t"), join(triploid, "\t"), join(triploid, "\t"), join(tetraploid, "\t"), join(pentaploid, "\t"), join(hexaploid, "\t"), join(heptaploid, "\t"), join(octaploid, "\t") ), "\t"), "\n")
 						end
 
 					else # if not enough samples

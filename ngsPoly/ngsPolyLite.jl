@@ -1,8 +1,8 @@
 
 # calculate geno likes and other stats from mpileup
 
-include("templates.jl")
-include("generics.jl")
+include("../templates.jl")
+include("../generics.jl")
 include("functions.jl")
 
 alleles = ['A','C','G','T']

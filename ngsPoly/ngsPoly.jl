@@ -411,7 +411,7 @@ GZip.open(parsed_args["fin"]) do file
 	
 						# write genotype likelihoods for each sample, if set
 						if parsed_args["fglikes"]!="NULL"
-							write(fglikes, join( (mySite.chrom, mySite.position, n, mySite.reference, sampleDepth, alleles[major], alleles[minor], join(haploid, "\t"), join(diploid, "\t"), join(triploid, "\t"), join(triploid, "\t"), join(tetraploid, "\t"), join(pentaploid, "\t"), join(hexaploid, "\t"), join(heptaploid, "\t"), join(octaploid, "\t") ), "\t"), "\n")
+							write(fglikes, join( (mySite.chrom, mySite.position, n, mySite.reference, sampleDepth, alleles[major], alleles[minor], join(haploid, "\t"), join(diploid, "\t"), join(triploid, "\t"), join(tetraploid, "\t"), join(pentaploid, "\t"), join(hexaploid, "\t"), join(heptaploid, "\t"), join(octaploid, "\t") ), "\t"), "\n")
 						end
 
 					else # if not enough samples

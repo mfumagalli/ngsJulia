@@ -13,9 +13,9 @@ Population genetics from pool sequencing data
 
 ## Simulate pool data
 
-	Rscript simulMpileup --help
+	Rscript simulMpileup.R --help
 
-	Rscript simulMpileup --out test.txt --copy 2x80,3x20 --sites 1000 --depth 100 --qual 20 --ksfs 1 --ne 10000 --pool | gzip > test.mpileup.gz
+	Rscript simulMpileup.R --out test.txt --copy 2x80,3x20 --sites 1000 --depth 100 --qual 20 --ksfs 1 --ne 10000 --pool | gzip > test.mpileup.gz
 
 	ls test.*
 

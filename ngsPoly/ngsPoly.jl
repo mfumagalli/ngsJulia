@@ -3,7 +3,7 @@
 
 include("../templates.jl")
 include("../generics.jl")
-include("functions.jl")
+include("Poly_functions.jl")
 
 alleles = ['A','C','G','T']
 

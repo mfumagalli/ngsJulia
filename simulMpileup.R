@@ -231,12 +231,6 @@ for (i in 1:opt$sites) {
 
         ploidy <- ncopy[n]
 
-
-
-
-
-
-
 		# haploid case
 		if (ncopy[n]==1) {
 

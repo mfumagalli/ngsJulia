@@ -28,16 +28,17 @@ Estimation of minor allele frequency from pooled-sequenced Next-generation-seque
 
 
 ## Estimate allele frequencies (MLE only with SNP calling)
+input -nSamp number can generate meaningful --saf(Site frequency spectrum) output and minor allele frequency estimate based on SFS (freqMax (maximum likelihood) and freqE(expected))
 
 	julia ngsPool.jl --help
 
-	julia ngsPool.jl --fin test.mpileup.gz --fout test.out.gz --lrtSnp 7.82
+	julia ngsPool.jl --fin test.mpileup.gz --fout test.out.gz --nSamp 220 --fsaf test.saf.gz --lrtSnp 7.82
 
 	less -S test.out.gz
 
 ## Estimate allele frequency likelihoods (without SNP calling)
-
-	julia ngsPool.jl --fin test.mpileup.gz --fout test.out.gz --lrtSnp -Inf --nSamp 220 --fsaf test.saf.gz
+	
+	julia ngsPool.jl --fin test.mpileup.gz --fout test.out.gz --nSamp 220 --fsaf test.saf.gz --lrtSnp -Inf
 
 	less -S test.out.gz
 	less -S test.saf.gz

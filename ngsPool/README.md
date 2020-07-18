@@ -25,8 +25,8 @@ Estimation of minor allele frequency from pooled-sequenced Next-generation-seque
 ### Simulating pool data for control
 	time Rscript simulMpileup_control.R --rr 2 --prevalence 0.1 --qqVector qqVector-1-1.txt --out test-control-1-1.txt --copy 2x80 --sites 1000 --depth 5 --pool | gzip > mpileup-control-1-1.gz
 
-
-
+     
+    
 
 *input -nSamp number can generate meaningful --saf(Site frequency spectrum) output and minor allele frequency estimate based on SFS (freqMax (maximum likelihood) and freqE(expected))
 ## Estimate allele frequencies (MLE only with SNP calling)

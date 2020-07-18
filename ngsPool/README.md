@@ -27,7 +27,7 @@ Estimation of minor allele frequency from pooled-sequenced Next-generation-seque
 
      
     
-
+##    
 *input -nSamp number can generate meaningful --saf(Site frequency spectrum) output and minor allele frequency estimate based on SFS (freqMax (maximum likelihood) and freqE(expected))
 ## Estimate allele frequencies (MLE only with SNP calling)
 Default likelihood ratio test statistic cutoff is 7.82, filtering out polymorphic sites.

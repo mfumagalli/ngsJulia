@@ -21,6 +21,7 @@ spec=matrix(c(
 	      'qual', 'q', 2, "integer", "mean base quality in phred score [default 20]",
 	      'pvar', 'r', 2, "double", "probability that site is variabile in the population [1.0]",
 	      'ksfs', 'k', 2, "double", "coeff. for shape of SFS default [1.0]",
+	       #ksfs=1/theta #theta as nucleotide diversity in a neutral site
 	      'panc', 'a', 2, "double", "probability that ancestor state is correct [1.0]",
 	      'ne', 'n', 2, "integer", "effective population size [default 10,000]",
 	      'pool', 'p', 0, "logical", "enable pool data",
@@ -172,35 +173,45 @@ pscores <- '!"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_`abcd
 ref <- "A"
 nonref <- "C"
 
-# population allele frequencies
-# if polymorphic
-ee <- (1/(1:(Ne-1))^(1/K))
-ee <-ee/sum(ee)
-# the sum must be = pvar
-ee <- ee*(opt$pvar)
-# add that some sites might not be polymorphic in the populationder <- c(0, ee, 0)
-pder <-c( (1-opt$pvar)*(9/10), ee, (1-opt$pvar)*(1/10) )
+# # population allele frequencies
+# # if polymorphic
+# ee <- (1/(1:(Ne-1))^(1/K))
+# #is this the "the specified allele frequencies were drawn from a the stationary distribution
+# #under a Wright-Fisher model.Under such a model, population allele frequencies are proportional to 1/x, 
+# #where x is the frequency of the allele in the population [48]." by Kim (2011)
+# 
+# #this is standard stationary distribution to simulate the population minor allele frequency?
+# 
+# 
+# 
+# 
+# ee <-ee/sum(ee)
+# # the sum must be = pvar
+# ee <- ee*(opt$pvar)
+# # add that some sites might not be polymorphic in the populationder <- c(0, ee, 0)
+# pder <-c( (1-opt$pvar)*(9/10), ee, (1-opt$pvar)*(1/10) )
+# 
+# # this is the expected p
+# #Ep=weighted.mean(seq(0,Ne,1), pder)/Ne
+# #Ep
+# 
+# # this is prob of Major being the ancestral
+# # sum(pder[1:(floor(Ne/2)+1)]); 1- sum(pder[1:(floor(Ne/2)+1)])
+# 
+# # ascii phred score
+# # http://www.omixon.com/bioinformatics-for-beginners-file-formats-part-2-short-reads/
+# 
+# # if depth is 0, replace with only 1 read with very low quality
+# 
+# #for (i in valid) { # cycle across sites
+# 
+# # sample derived allele frequency
+# qqVector <- sample(x=seq(0,Ne,1),size=opt$sites,prob=pder,replace=TRUE)/Ne 
+# # probability of incorrectly assigning the ancestral state
+# pAncErr <- sample(x=c(0,1),size=opt$sites,prob=c(1-opt$panc,opt$panc),repl=TRUE)
+# qqVector[which(pAncErr==1)] <- 1-qqVector[which(pAncErr==1)]
 
-# this is the expected p
-#Ep=weighted.mean(seq(0,Ne,1), pder)/Ne
-#Ep
-
-# this is prob of Major being the ancestral
-# sum(pder[1:(floor(Ne/2)+1)]); 1- sum(pder[1:(floor(Ne/2)+1)])
-
-# ascii phred score
-# http://www.omixon.com/bioinformatics-for-beginners-file-formats-part-2-short-reads/
-
-# if depth is 0, replace with only 1 read with very low quality
-
-#for (i in valid) { # cycle across sites
-
-# sample derived allele frequency
-qqVector <- sample(x=seq(0,Ne,1),size=opt$sites,prob=pder,replace=TRUE)/Ne 
-# probability of incorrectly assigning the ancestral state
-pAncErr <- sample(x=c(0,1),size=opt$sites,prob=c(1-opt$panc,opt$panc),repl=TRUE)
-qqVector[which(pAncErr==1)] <- 1-qqVector[which(pAncErr==1)]
-
+qqVector=10^seq(from=-4,to=-1,length.out = 1000) #population allele frequency defined here 
 
 for (i in 1:opt$sites) {
 
@@ -230,6 +241,12 @@ for (i in 1:opt$sites) {
 		alls <- bqs <- c() # init bases and qualities
 
         ploidy <- ncopy[n]
+
+
+
+
+
+
 
 		# haploid case
 		if (ncopy[n]==1) {

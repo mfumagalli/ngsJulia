@@ -12,6 +12,9 @@ myPaths <- c(myPaths[2], myPaths[1])  # switch them
 
 # http://www.inside-r.org/packages/cran/getopt/docs/getopt.package
 spec=matrix(c(
+        'qqVector','x', 1, 'character', "Vector of qq (maf for simulation) of all sites",
+        'rr', 'i', 2, "double", "relative risk",
+        'prevalence', 'z', 2, "double", "prevalence",
 	      'out',	'o', 2, "character", "output files for real data (and log if verbose), (mpileup is in stdout)",
 	      'copy', 	'c', 1, "character", "ploidy per sample, e.g. 2x3,4 is 2,2,2,4",
 	      'sites', 	's', 2, "integer", "number of sites [default 1,000]",
@@ -38,6 +41,8 @@ if ( !is.null(opt$help) ) {
 }
 
 # default values
+if (is.null(opt$rr)) opt$rr <- 2
+if (is.null(opt$prevalence)) opt$prevalence <- 0.1
 if (is.null(opt$sites)) opt$sites <- 1e3
 if (is.null(opt$depth)) opt$depth <- 20.0
 if (is.null(opt$qual)) opt$qual <- 20
@@ -52,6 +57,7 @@ if (is.null(opt$lendepth)) opt$lendepth <- 0
 if (is.null(opt$errdepth)) opt$errdepth <- 0.05
 if (is.null(opt$seed)) opt$seed <- 180218
 
+
 # set seed 
 set.seed(opt$seed)
 
@@ -61,6 +67,16 @@ opt$panc <- 1-opt$panc
 # assign to old variables (then in the future change this)
 fout_log <- paste(opt$out, ".log", sep="", collapse="")
 fout_real <- opt$out
+
+qqVector<- opt$qqVector
+# cat("qqVector   ", is.character(qqVector) ) # data2/case_control/qqVector-1-1.txt
+qqVector = read.delim2(qqVector, header = FALSE, sep = "\t", dec = ".") #read as list
+qqVector = unlist(qqVector, use.names=FALSE)
+# print(c("qqVector ", qqVector))
+# print(c("typeof ", typeof(qqVector[1])))
+
+rr <- opt$rr
+prevalence <- opt$prevalence
 nsites <- opt$sites
 mbqual <- opt$qual
 K <- opt$ksfs
@@ -122,7 +138,7 @@ if (opt$lendepth>0) {
             indexes <- c(1)
             toBeTaken <- 2:nsites
 
-            i <- 2
+            i <- 2 #not the place limiting nsite to have to be >=3
             lengths <- rpois(nsites, opt$lendepth)
             increasing <- sample(x=c(0,1),size=nsites,prob=c(.5,.5),replace=TRUE)
             
@@ -172,37 +188,41 @@ pscores <- '!"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_`abcd
 ref <- "A"
 nonref <- "C"
 
-# population allele frequencies
-# if polymorphic
-ee <- (1/(1:(Ne-1))^(1/K))
-ee <-ee/sum(ee)
-# the sum must be = pvar
-ee <- ee*(opt$pvar)
-# add that some sites might not be polymorphic in the populationder <- c(0, ee, 0)
-pder <-c( (1-opt$pvar)*(9/10), ee, (1-opt$pvar)*(1/10) )
+# # population allele frequencies
+# # if polymorphic
+# ee <- (1/(1:(Ne-1))^(1/K))
+# ee <-ee/sum(ee)
+# # the sum must be = pvar
+# ee <- ee*(opt$pvar)
+# # add that some sites might not be polymorphic in the populationder <- c(0, ee, 0)
+# pder <-c( (1-opt$pvar)*(9/10), ee, (1-opt$pvar)*(1/10) )
+# 
+# # this is the expected p
+# #Ep=weighted.mean(seq(0,Ne,1), pder)/Ne
+# #Ep
+# 
+# # this is prob of Major being the ancestral
+# # sum(pder[1:(floor(Ne/2)+1)]); 1- sum(pder[1:(floor(Ne/2)+1)])
+# 
+# # ascii phred score
+# # http://www.omixon.com/bioinformatics-for-beginners-file-formats-part-2-short-reads/
+# 
+# # if depth is 0, replace with only 1 read with very low quality
+# 
+# #for (i in valid) { # cycle across sites
+# 
+# # sample derived allele frequency
+# qqVector <- sample(x=seq(0,Ne,1),size=opt$sites,prob=pder,replace=TRUE)/Ne 
+# # probability of incorrectly assigning the ancestral state
+# pAncErr <- sample(x=c(0,1),size=opt$sites,prob=c(1-opt$panc,opt$panc),repl=TRUE)
+# qqVector[which(pAncErr==1)] <- 1-qqVector[which(pAncErr==1)]
 
-# this is the expected p
-#Ep=weighted.mean(seq(0,Ne,1), pder)/Ne
-#Ep
 
-# this is prob of Major being the ancestral
-# sum(pder[1:(floor(Ne/2)+1)]); 1- sum(pder[1:(floor(Ne/2)+1)])
+#instead use the qqVector output from case=> so for each site the minior allele freuqnency of simulation are
+ #correspondingly adjusted by relative risk
+ 
 
-# ascii phred score
-# http://www.omixon.com/bioinformatics-for-beginners-file-formats-part-2-short-reads/
-
-# if depth is 0, replace with only 1 read with very low quality
-
-#for (i in valid) { # cycle across sites
-
-# sample derived allele frequency
-qqVector <- sample(x=seq(0,Ne,1),size=opt$sites,prob=pder,replace=TRUE)/Ne 
-# probability of incorrectly assigning the ancestral state
-pAncErr <- sample(x=c(0,1),size=opt$sites,prob=c(1-opt$panc,opt$panc),repl=TRUE)
-qqVector[which(pAncErr==1)] <- 1-qqVector[which(pAncErr==1)]
-
-
-for (i in 1:opt$sites) {
+for (i in 1:nsites) {
 
 	# if pool, initialise
 	pool_alls <- pool_bqs <- c()
@@ -217,10 +237,33 @@ for (i in 1:opt$sites) {
 
 	# sample derived allele frequency
 	#qq <- sample(x=seq(0,Ne,1),size=1,prob=pder)/Ne
-        qq <- qqVector[i] 
+        qq <- qqVector[i]
 
         # probability of incorrectly assigning the ancestral state
 	#if (sample(x=c(0,1),size=1,prob=c(1-opt$panc,opt$panc),repl=F)) qq <- 1-qq
+
+  ## adjust the maf using multiplicative disease model######################
+  # multiplicative<-function(p, rr, prevalence){ #p as maf
+  pp = 1-qq #major allele frequency
+  grr = c(rr*rr, rr, 1) # genotype risk for aa, Aa, AA
+  gfreq = c(qq*qq, 2*pp*qq, pp*pp) # genotype probability
+  
+  psum=0
+  for(i in 1:3){
+    psum = psum + grr[i]*gfreq[i]; #risk sum for each genotype?
+  }
+  
+  # condg_freq_D = rep(0, 3)
+  condg_freq_nD = rep(0, 3)
+  for(i in 1:3){
+    # condg_freq_D[i] = (grr[i]*gfreq[i])/psum #case
+    condg_freq_nD[i] = gfreq[i]*(1.0 - grr[i]*prevalence/psum)/(1.0-prevalence) #control
+  }
+  
+  # mafs = rep(0, 2)
+  #MAF = aa              +    Aa/2
+  # qq = condg_freq_D[1] + condg_freq_D[2]/2   # maf of case
+  qq = condg_freq_nD[1] + condg_freq_nD[2]/2  #maf of control
 
 	pp <- 1-qq
 	linea_real <- c(linea_real, qq)

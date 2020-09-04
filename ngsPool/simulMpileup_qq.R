@@ -12,6 +12,7 @@ myPaths <- c(myPaths[2], myPaths[1])  # switch them
 
 # http://www.inside-r.org/packages/cran/getopt/docs/getopt.package
 spec=matrix(c(
+        'qq', 'qq', 0.1,"double","minor allele probability for simulation",
 	      'out',	'o', 2, "character", "output files for real data (and log if verbose), (mpileup is in stdout)",
 	      'copy', 	'c', 1, "character", "ploidy per sample, e.g. 2x3,4 is 2,2,2,4",
 	      'sites', 	's', 2, "integer", "number of sites [default 1,000]",
@@ -29,6 +30,7 @@ spec=matrix(c(
 	      'offset', 'f', 0, "integer", "offset value for genomic position",
 	      'seed','u', 2, "integer", "random seed for simulations reproducibility [default 180218]"
 	      ), byrow=TRUE, ncol=5)
+
 opt <- getopt(spec)
 
 # help
@@ -38,6 +40,7 @@ if ( !is.null(opt$help) ) {
 }
 
 # default values
+#if (is.null(opt$qq)) opt$qq <-0.1
 if (is.null(opt$sites)) opt$sites <- 1e3
 if (is.null(opt$depth)) opt$depth <- 20.0
 if (is.null(opt$qual)) opt$qual <- 20
@@ -59,6 +62,7 @@ set.seed(opt$seed)
 opt$panc <- 1-opt$panc
 
 # assign to old variables (then in the future change this)
+qq<-opt$qq
 fout_log <- paste(opt$out, ".log", sep="", collapse="")
 fout_real <- opt$out
 nsites <- opt$sites
@@ -172,35 +176,6 @@ pscores <- '!"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_`abcd
 ref <- "A"
 nonref <- "C"
 
-# population allele frequencies
-# if polymorphic
-ee <- (1/(1:(Ne-1))^(1/K))
-ee <-ee/sum(ee)
-# the sum must be = pvar
-ee <- ee*(opt$pvar)
-# add that some sites might not be polymorphic in the populationder <- c(0, ee, 0)
-pder <-c( (1-opt$pvar)*(9/10), ee, (1-opt$pvar)*(1/10) )
-
-# this is the expected p
-#Ep=weighted.mean(seq(0,Ne,1), pder)/Ne
-#Ep
-
-# this is prob of Major being the ancestral
-# sum(pder[1:(floor(Ne/2)+1)]); 1- sum(pder[1:(floor(Ne/2)+1)])
-
-# ascii phred score
-# http://www.omixon.com/bioinformatics-for-beginners-file-formats-part-2-short-reads/
-
-# if depth is 0, replace with only 1 read with very low quality
-
-#for (i in valid) { # cycle across sites
-
-# sample derived allele frequency
-qqVector <- sample(x=seq(0,Ne,1),size=opt$sites,prob=pder,replace=TRUE)/Ne 
-# probability of incorrectly assigning the ancestral state
-pAncErr <- sample(x=c(0,1),size=opt$sites,prob=c(1-opt$panc,opt$panc),repl=TRUE)
-qqVector[which(pAncErr==1)] <- 1-qqVector[which(pAncErr==1)]
-
 
 for (i in 1:opt$sites) {
 
@@ -217,7 +192,13 @@ for (i in 1:opt$sites) {
 
 	# sample derived allele frequency
 	#qq <- sample(x=seq(0,Ne,1),size=1,prob=pder)/Ne
-        qq <- qqVector[i] 
+	
+	      
+        #qq <- qqVector[i] 
+        
+        #-----------------------all above to define qq is deleted
+        #qq (minor allele p for simulation) will be inputed
+        
 
         # probability of incorrectly assigning the ancestral state
 	#if (sample(x=c(0,1),size=1,prob=c(1-opt$panc,opt$panc),repl=F)) qq <- 1-qq
@@ -230,6 +211,7 @@ for (i in 1:opt$sites) {
 		alls <- bqs <- c() # init bases and qualities
 
         ploidy <- ncopy[n]
+
 
 		# haploid case
 		if (ncopy[n]==1) {

@@ -12,7 +12,10 @@ myPaths <- c(myPaths[2], myPaths[1])  # switch them
 
 # http://www.inside-r.org/packages/cran/getopt/docs/getopt.package
 spec=matrix(c(
+        'rr', 'i', 2, "double", "relative risk",
+        'prevalence', 'z', 2, "double", "prevalence",
 	      'out',	'o', 2, "character", "output files for real data (and log if verbose), (mpileup is in stdout)",
+        'out_qqVector', 'x', 2, "character", "maf vector of sites in case, output for control",
 	      'copy', 	'c', 1, "character", "ploidy per sample, e.g. 2x3,4 is 2,2,2,4",
 	      'sites', 	's', 2, "integer", "number of sites [default 1,000]",
 	      'depth', 	'd', 2, "double", "mean haploid depth per sample [default 20.0]",
@@ -38,6 +41,8 @@ if ( !is.null(opt$help) ) {
 }
 
 # default values
+if (is.null(opt$rr)) opt$rr <- 2
+if (is.null(opt$prevalence)) opt$prevalence <- 0.1
 if (is.null(opt$sites)) opt$sites <- 1e3
 if (is.null(opt$depth)) opt$depth <- 20.0
 if (is.null(opt$qual)) opt$qual <- 20
@@ -52,6 +57,7 @@ if (is.null(opt$lendepth)) opt$lendepth <- 0
 if (is.null(opt$errdepth)) opt$errdepth <- 0.05
 if (is.null(opt$seed)) opt$seed <- 180218
 
+
 # set seed 
 set.seed(opt$seed)
 
@@ -61,6 +67,10 @@ opt$panc <- 1-opt$panc
 # assign to old variables (then in the future change this)
 fout_log <- paste(opt$out, ".log", sep="", collapse="")
 fout_real <- opt$out
+fout_qqVector <- opt$out_qqVector
+
+rr <- opt$rr
+prevalence <- opt$prevalence
 nsites <- opt$sites
 mbqual <- opt$qual
 K <- opt$ksfs
@@ -79,6 +89,10 @@ for (i in 1:length(tmp)) {
 }
 rm(tmp); rm(tmp2)
 ncopy=as.numeric(ncopy)
+
+# print("print copy--$ncopy") #from R
+# cat("cat copy--$ncopy") #in shell
+
 if (max(ncopy)>6) {
 	cat("Max ploidy is 6.\n")
 	q(status=1)
@@ -86,6 +100,8 @@ if (max(ncopy)>6) {
 
 # init files
 if (!is.null(opt$out)) cat("", file=fout_real)
+if (!is.null(opt$out_qqVector)) cat("", file=fout_qqVector)
+
 
 # how many samples
 nsams <- length(ncopy)
@@ -154,7 +170,7 @@ if (opt$lendepth>0) {
 		}
 		conDepth[j,] <- depth[j,indexes]
 	}
-depth <- conDepth 
+depth <- conDepth  # row: nsamp; col: nsites
 rm(conDepth)
 }
 
@@ -202,6 +218,9 @@ pAncErr <- sample(x=c(0,1),size=opt$sites,prob=c(1-opt$panc,opt$panc),repl=TRUE)
 qqVector[which(pAncErr==1)] <- 1-qqVector[which(pAncErr==1)]
 
 
+cat(qqVector, sep="\t", file=fout_qqVector)
+cat("\n", file = fout_qqVector, append = T)
+
 for (i in 1:opt$sites) {
 
 	# if pool, initialise
@@ -217,11 +236,33 @@ for (i in 1:opt$sites) {
 
 	# sample derived allele frequency
 	#qq <- sample(x=seq(0,Ne,1),size=1,prob=pder)/Ne
-        qq <- qqVector[i] 
-
+  qq <- qqVector[i]
         # probability of incorrectly assigning the ancestral state
 	#if (sample(x=c(0,1),size=1,prob=c(1-opt$panc,opt$panc),repl=F)) qq <- 1-qq
-
+        
+  ## adjust the maf using multiplicative disease model######################
+  # multiplicative<-function(p, rr, prevalence){ #p as maf
+  pp = 1-qq #major allele frequency
+  grr = c(rr*rr, rr, 1) # genotype risk for aa, Aa, AA
+  gfreq = c(qq*qq, 2*pp*qq, pp*pp) # genotype probability
+  
+  psum=0
+  for(i in 1:3){
+    psum = psum + grr[i]*gfreq[i]; #risk sum for each genotype?
+  }
+  
+  condg_freq_D = rep(0, 3)
+  condg_freq_nD = rep(0, 3)
+  for(i in 1:3){
+    condg_freq_D[i] = (grr[i]*gfreq[i])/psum #case
+    # condg_freq_nD[i] = gfreq[i]*(1.0 - grr[i]*prevalence/psum)/(1.0-prevalence) #control
+  }
+  
+  # mafs = rep(0, 2)
+  #MAF = aa              +    Aa/2
+  qq = condg_freq_D[1] + condg_freq_D[2]/2   # maf of case
+  # mafs[2] = condg_freq_nD[1] + condg_freq_nD[2]/2  #maf of control
+        
 	pp <- 1-qq
 	linea_real <- c(linea_real, qq)
 
@@ -230,6 +271,7 @@ for (i in 1:opt$sites) {
 		alls <- bqs <- c() # init bases and qualities
 
         ploidy <- ncopy[n]
+        
 
 		# haploid case
 		if (ncopy[n]==1) {
@@ -244,10 +286,10 @@ for (i in 1:opt$sites) {
 			# daf
 			if (geno=="C") daf <- daf+1
 
-			if (depth[n,i]>0) { # if data
+			if (depth[n,i]>0) { # if data         #row: nsamp; col: nsites
 
-              		  	# sample base qualities for all reads around the mean
-                		ibq <- round(rnorm(mean=mbqual,sd=2,n=depth[n,i]))
+    		  	# sample base qualities for all reads around the mean
+      		ibq <- round(rnorm(mean=mbqual,sd=2,n=depth[n,i]))
 				ibq[which(ibq<0)] <- 0
 
 				# for each read
@@ -257,7 +299,7 @@ for (i in 1:opt$sites) {
 					bqs <- c(bqs, substring(pscores, ibq[j]-1, ibq[j]-1))
 
 					# from base quality calculate base probability
-		      			ps <- ibq[j]
+		      ps <- ibq[j]
 					p <- 10^(-(ps/10)) # probability
 
 					# probabilities of sampling bases depending of base qualities
@@ -294,8 +336,8 @@ for (i in 1:opt$sites) {
 
 			if (depth[n,i]>0) { # if data
 
-        	        	# sample qualities
-                		ibq=round(rnorm(mean=mbqual,sd=2,n=depth[n,i])); bqs=c(); alls=c(); ibq[which(ibq<0)]=0
+      	# sample qualities
+    		ibq=round(rnorm(mean=mbqual,sd=2,n=depth[n,i])); bqs=c(); alls=c(); ibq[which(ibq<0)]=0
 			
 				# for each read
 				for (j in 1:depth[n,i]) {
@@ -418,12 +460,13 @@ for (i in 1:opt$sites) {
 			if (depth[n,i]>0) { # if data
 
 				# sample qualities
-                		ibq=round(rnorm(mean=mbqual,sd=2,n=depth[n,i])); bqs=c(); alls=c(); ibq[which(ibq<0)]=0
+          ibq=round(rnorm(mean=mbqual,sd=2,n=depth[n,i])); bqs=c(); alls=c(); ibq[which(ibq<0)]=0
 		
 				# for each read
 				for (j in 1:depth[n,i]) {
 					bqs=c(bqs, substring(pscores, ibq[j]-1, ibq[j]-1))
-			       	 	ps=ibq[j]; p=10^(-(ps/10)) # probability
+			    ps=ibq[j]; p=10^(-(ps/10)) # probability
+			    
 					# probabilities of sampling bases depending of base qualities
 					if (geno=="AAAAA") probs=c( (1-p), p/3, p/3, p/3)
 					if (geno=="CCCCC") probs=c( p/3, 1-p, p/3, p/3)
@@ -448,7 +491,7 @@ for (i in 1:opt$sites) {
 		if (opt$pool==FALSE) {
 			linea=c(linea, depth[n,i], paste(alls, sep="", collapse=""), paste(bqs,sep="",collapse=""))
 		} else {
-			pool_alls=c(pool_alls, alls)
+			pool_alls=c(pool_alls, alls) #vector of reads of individuals #melt together by paste(pool_alls, sep="", collapse="")
 			pool_bqs=c(pool_bqs, bqs)
 		}
 
@@ -471,9 +514,9 @@ for (i in 1:opt$sites) {
 	if (!is.null(opt$out)) {
 		# daf
 		nchroms=sum(as.numeric(ncopy))
-	        linea_real=c(linea_real, (daf/nchroms))
+	  linea_real=c(linea_real, (daf/nchroms))
 		# write
-		cat(linea_real, sep="\t", file=fout_real, append=T)
+		cat(linea_real, sep="\t", file=fout_real, append=T) #amended as doubting the cat(line510) is the gzipped output
 		cat("\n", file=fout_real, append=T)
 	}
 

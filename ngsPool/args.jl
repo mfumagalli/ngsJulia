@@ -1,14 +1,15 @@
 
 # Specific Functions for ngsPool
 
-import GZip
+#import GZip
+using GZip
 using ArgParse
 
 # http://argparsejl.readthedocs.io/en/latest/argparse.html
 function parse_commandline_pool()
 	s = ArgParseSettings()
 
-	@add_arg_table s begin
+	@add_arg_table! s begin
 
 		"--fin"
 			help = "input file gzipped mpileup"
@@ -18,30 +19,31 @@ function parse_commandline_pool()
 		"--fout"
 			help = "output file gzipped text"
 			arg_type = AbstractString
-			required = true
+			required = true #not printed in the --help in linux
 
 		"--fsaf"
 			help = "output gzipped saf file"
 			arg_type = AbstractString
 			default = "/dev/null"
 
-		"--nChroms"
+		# "--nChroms" #to avoid ambiguity, changed to nSamp (2020/5/4, amend)
+		"--nSamp"
 			help = "number of samples [>0 ensables saf likelihoods]"
 			arg_type = Int64
 			default = 0
 
-		"--thSnp"
-			help = "chisquare for SNP calling"
+		"--lrtSnp" #amended thSnp to lrtSnp (2020/5/2, amend)
+			help = "LRT for SNP calling" #likelihood ratio test statistic
 			arg_type = Float64
-			default = 7.82
+			default = 7.82 #the LRT value in chisquare value in one degree of freedom p value could be 0.01
 
-		"--thBia"       
-			help = "chisquare for biallelic calling"
+		"--lrtBia"
+			help = "LRT for biallelic calling"
 			arg_type = Float64
 			default = -Inf
-		
-		"--thTria"
-			help = "chisquare for triallelic (non) calling"
+
+		"--lrtTria"
+			help = "LRT for triallelic (non) calling"
 			arg_type = Float64
 			default = Inf
 
@@ -66,7 +68,7 @@ function parse_commandline_pool()
 			default = 0
 
 		"--tol"
-			help = "tolerance for GSS estimation of allele frequencies"
+			help = "tolerance for GSS estimation of allele frequencies" #golden-section-search(GSS)
 			arg_type = Float64
 			default = 1e-5
 
@@ -92,4 +94,3 @@ function parse_commandline_pool()
 end
 
 # -----------------------------------------
-

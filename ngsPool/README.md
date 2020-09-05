@@ -11,7 +11,7 @@ Estimation of minor allele frequency from pooled-sequenced Next-generation-seque
         ln -s ../ngsJulia/generics.jl generics.jl
 	ln -s ../ngsJulia/templates.jl templates.jl
 
-## Simulate pool data
+## Simulate pool data (https://github.com/SamueleSoraggi/HMMploidy/blob/master/simulMpileup.R)
 
 	Rscript simulMpileup.R --help
 

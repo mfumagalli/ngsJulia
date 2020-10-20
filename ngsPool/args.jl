@@ -26,9 +26,9 @@ function parse_commandline_pool()
 			arg_type = AbstractString
 			default = "/dev/null"
 
-		# "--nChroms" #to avoid ambiguity, changed to nSamp (2020/5/4, amend)
-		"--nSamp"
-			help = "number of samples [>0 ensables saf likelihoods]"
+		# "nChroms=ploidy level * number of individuals
+		"--nChroms"
+			help = "total number of chromosomes pooled [>0 ensables saf likelihoods]"
 			arg_type = Int64
 			default = 0
 

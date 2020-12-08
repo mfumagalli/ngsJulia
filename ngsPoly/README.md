@@ -25,7 +25,7 @@ The program will output the most likely array of marginal ploidies, as well as t
 In the latter assumption, we can propose a Bayesian formulation:
 
 ```
-P(O_1=y, O_2=y, ..., O_n=y | D) = P(D|O) P(O) / P(D)
+P(O_1=y, O_2=y, ..., O_n=y|D) = P(D|O) P(O) / P(D)
 ```
 
 where P(D|O) is calculated as aforementioned.

@@ -11,7 +11,7 @@ Notation:
 * O: ploidy
 * A: ancestral state
 ```
-log(P(D|O_1=y_1, O_2=y_2, ..., O_n=y_n)) = sum_{samples} sum_{sites} P(D|G,A) P(G|O,A) P(A)
+log(P(D, G, A|O_1=y_1, O_2=y_2, ..., O_n=y_n)) = sum_{samples} sum_{sites} P(D|G,A) P(G|O,A) P(A)
 ```
 	
 where:
@@ -25,7 +25,7 @@ The program will output the most likely array of marginal ploidies, as well as t
 In the latter assumption, we can propose a Bayesian formulation:
 
 ```
-P(O_1=y, O_2=y, ..., O_n=y) = P(D|O) P(O) / P(D)
+P(O_1=y, O_2=y, ..., O_n=y|D) = P(D|O) P(O) / P(D)
 ```
 
 where P(D|O) is calculated as aforementioned.

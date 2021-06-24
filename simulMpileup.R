@@ -269,11 +269,11 @@ for (i in 1:opt$sites) {
 
 				} # end each read
 
-			} else { # end if data
-			
-				bqs=c(bqs,"!")
-				alls=c(alls,",")
-				depth[n,i]=1
+			#} else { # end if data
+			#
+			#	bqs=c(bqs,"!")
+			#	alls=c(alls,",")
+			#	depth[n,i]=1
 
 			} # end if not data
 
@@ -308,11 +308,11 @@ for (i in 1:opt$sites) {
 					alls=c(alls, sample(x=c(".","C","G","T"), size=1, prob=probs))
 				} # end for each read
 
-			} else { # end if data
+			#} else { # end if data
 				
-				bqs=c(bqs,"!")
-				alls=c(alls,",")
-				depth[n,i]=1
+			#	bqs=c(bqs,"!")
+			#	alls=c(alls,",")
+			#	depth[n,i]=1
 							
 			} # end if not data# end if data
 
@@ -348,11 +348,11 @@ for (i in 1:opt$sites) {
 					alls=c(alls, sample(x=c(".","C","G","T"), size=1, prob=probs))
 				}
 
-			} else { # end if data
+			#} else { # end if data
 				
-				bqs=c(bqs,"!")
-				alls=c(alls,",")
-				depth[n,i]=1
+			#	bqs=c(bqs,"!")
+			#	alls=c(alls,",")
+			#	depth[n,i]=1
 							
 			} # end if not data# end if data
 
@@ -390,11 +390,11 @@ for (i in 1:opt$sites) {
 					alls=c(alls, sample(x=c(".","C","G","T"), size=1, prob=probs))
 				}
 
-			} else { # end if data
+			#} else { # end if data
 				
-				bqs=c(bqs,"!")
-				alls=c(alls,",")
-				depth[n,i]=1
+			#	bqs=c(bqs,"!")
+			#	alls=c(alls,",")
+			#	depth[n,i]=1
 							
 			} # end if not data# end if data
 
@@ -434,11 +434,11 @@ for (i in 1:opt$sites) {
 					alls=c(alls, sample(x=c(".","C","G","T"), size=1, prob=probs))
 				}
 
-			} else { # end if data
+			#} else { # end if data
 				
-				bqs=c(bqs,"!")
-				alls=c(alls,",")
-				depth[n,i]=1
+			#	bqs=c(bqs,"!")
+			#	alls=c(alls,",")
+			#	depth[n,i]=1
 							
 			} # end if not data# end if data
 

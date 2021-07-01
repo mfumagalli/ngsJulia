@@ -1,5 +1,4 @@
-# SNP calling, allele frequency estimation, sample allele frequency
- # likelihoods for pool sequencing data (from gzipped mpileup)
+# SNP calling, allele frequency estimation, sample allele frequency likelihoods from pooled sequencing data with gzipped mpileup files as input
 
 # run 'julia ngsPool --help' for documentation
 include("struct.jl")
@@ -15,7 +14,7 @@ for (arg,val) in parsed_args
 	println("  $arg  =>  $val")
 end
 
-nSamp = parsed_args["nSamp"]
+nSamp = parsed_args["nChroms"]
 if nSamp < 0
 	nSamp = 0
 end

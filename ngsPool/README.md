@@ -1,10 +1,7 @@
 # ngsPool
-Estimation of minor allele frequency from pooled-sequenced Next-generation-sequencing data, which is updated and commented version.
+Estimation of allele frequency from pooled-sequencing data
 
 ## Installation
-
-	git clone https://github.com/mfumagalli/ngsPool.git
-        git clone https://github.com/mfumagalli/ngsJulia.git
 
         cd ngsPool
         ln -s ../ngsJulia/simulMpileup.R simulMpileup.R
@@ -12,38 +9,56 @@ Estimation of minor allele frequency from pooled-sequenced Next-generation-seque
 	ln -s ../ngsJulia/templates.jl templates.jl
 
 ## Simulate pool data 
-(https://github.com/SamueleSoraggi/HMMploidy/blob/master/simulMpileup.R)
 
-	Rscript simulMpileup.R --help
+```
+JULIA=~/Software/julia-1.6.1/bin/julia
+NGSJULIA=~/Software/ngsJulia
 
-	Rscript simulMpileup.R --out test.txt --copy 2x80,3x20 --sites 1000 --depth 100 --qual 20 --ksfs 1 --ne 10000 --pool | gzip > test.mpileup.gz
+Rscript $NGSJULIA/simulMpileup.R --help
 
-	ls test.*
+# e.g. simulate 10 diploids, 1000 base pairs with an average depth of 20 and base quality of 20 in phred schore, from a population of 10,000 effective size under constant-size evolution:
+
+Rscript $NGSJULIA/simulMpileup.R --out test.txt --copy 2x10 --sites 1000 --depth 20 --qual 20 --ksfs 1 --ne 10000 --pool | gzip > test.mpileup.gz
+
+ls test.*
+```
 	
-### Simulating pool data for case
-	time Rscript simulMpileup_case.R --rr 2 --prevalence 0.1 --out_qqVector data2/case_control/qqVector-1-1.txt --out data2/case_control/test-case-1-1.txt --copy 2x80 --sites 1000 --depth 5 --pool | gzip > data2/case_control/mpileup-case-1-1.gz
+## Estimate allele frequencies with SNP calling and frequentist approach
 
-### Simulating pool data for control
-	time Rscript simulMpileup_control.R --rr 2 --prevalence 0.1 --qqVector qqVector-1-1.txt --out test-control-1-1.txt --copy 2x80 --sites 1000 --depth 5 --pool | gzip > mpileup-control-1-1.gz
-	
-## Estimate allele frequencies (MLE only with SNP calling)
-- Input 
-	-nSamp (e.g., in simulMpileup.R 2x80,3x20 = 220 input to process with ngsPool.jl) number can enable to generate meaningful -saf(Site frequency spectrum) output and minor allele frequency estimate based on SFS (freqMax (maximum likelihood) and freqE(expected))
-- Default likelihood ratio test statistic cutoff is 7.82, filtering out polymorphic sites.
-	
-		julia ngsPool.jl --help
+```
+$JULIA $NGSJULIA/ngsPool/ngsPool.jl --help
+```
 
-		julia ngsPool.jl --fin test.mpileup.gz --fout test.out.gz --nSamp 220 --fsaf test.saf.gz --lrtSnp 7.82
+```
+$JULIA $NGSJULIA/ngsPool/ngsPool.jl --fin test.mpileup.gz --fout test.out.gz --lrtSnp 7.82
 
-		less -S test.out.gz
+less -S test.out.gz
+```
 
-## Estimate allele frequency likelihoods (without SNP calling)
-all sites.
-	
-	julia ngsPool.jl --fin test.mpileup.gz --fout test.out.gz --nSamp 220 --fsaf test.saf.gz --lrtSnp -Inf
+## Estimate allele frequency likelihoods without SNP calling
 
-	less -S test.out.gz
-	less -S test.saf.gz
+`nChroms` is equal to (ploidy x individuals), 2x8 + 3x4 = 28. If this value is set it enables the calculation of sample allele frequency likelihoods (`saf.gz` file).
+
+```
+$JULIA $NGSJULIA/ngsPool/ngsPool.jl --fin test.mpileup.gz --fout test.out.gz --nChroms 28 --fsaf test.saf.gz
+
+less -S test.out.gz
+
+less -S test.saf.gz
+```
+
+## Site frequency spectrum
+
+```
+Rscript $NGSJULIA/ngsPool/poolSFS.R test.saf.gz > sfs.txt
+
+less -S sfs.txt
+```
+
+# Association test
+
+
+
 
 
 ## Assessment of its performance

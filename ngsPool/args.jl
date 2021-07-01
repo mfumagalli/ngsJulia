@@ -1,7 +1,6 @@
 
-# Specific Functions for ngsPool
+# Specific functions for ngsPool
 
-#import GZip
 using GZip
 using ArgParse
 
@@ -26,16 +25,15 @@ function parse_commandline_pool()
 			arg_type = AbstractString
 			default = "/dev/null"
 
-		# "nChroms=ploidy level * number of individuals
 		"--nChroms"
-			help = "total number of chromosomes pooled [>0 ensables saf likelihoods]"
+			help = "total number of chromosomes pooled (ploidy * number of individuals) [>0 ensables saf likelihoods]"
 			arg_type = Int64
 			default = 0
 
-		"--lrtSnp" #amended thSnp to lrtSnp (2020/5/2, amend)
+		"--lrtSnp"
 			help = "LRT for SNP calling" #likelihood ratio test statistic
 			arg_type = Float64
-			default = 7.82 #the LRT value in chisquare value in one degree of freedom p value could be 0.01
+			default = -Inf #e.g. if 7.82 the LRT value in chisquare value in one degree of freedom p value is 0.01
 
 		"--lrtBia"
 			help = "LRT for biallelic calling"

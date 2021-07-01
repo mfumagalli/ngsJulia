@@ -30,28 +30,23 @@ P(O_1=y, O_2=y, ..., O_n=y|D) = P(D|O) P(O) / P(D)
 
 where P(D|O) is calculated as aforementioned.
 
-## Installation
+## Tutorial
 
-This has been tested with Julia >= 0.4.7 (Version 0.4.7-pre+3, Commit eb322c0\*) on a x86\_64-linux-gnu machine and it requires the following packages: GZip, ArgParse.
-
-	git clone https://github.com/mfumagalli/ngsPoly.git
-        git clone https://github.com/mfumagalli/ngsJulia.git
-
-        cd ngsPoly
-        ln -s ../ngsJulia/simulMpileup.R simulMpileup.R
-        ln -s ../ngsJulia/generics.jl generics.jl
-        ln -s ../ngsJulia/templates.jl templates.jl
-
-## Example
+Initialise paths.
+```
+JULIA=~/Software/julia-1.6.1/bin/julia
+NGSJULIA=~/Software/ngsJulia
+```
 
 First, you need a create a file containing your prior probabilities and genotypes and major allele being the ancestral.
 This can be generated using the following R script.
-
-	Rscript writePars.R -k 1 -n 10000 -p 1 > test.pars
-	Rscript writePars.R -k 1 -n 10000 -p 0.90 > test.unk.pars
-	Rscript writePars.R -k 1 -n 10000 -p -1 > test.auto.pars
-	Rscript writePars.R -k 1 -n 10000 -p 0.5 > test.fold.pars
-	Rscript writePars.R -k 0.9 -n 100000 -p 1 -s > test.snp.pars
+```
+Rscript $NGSJULIA/ngsPoly/writePars.R -k 1 -n 10000 -p 1 > test.pars
+Rscript $NGSJULIA/ngsPoly/writePars.R -k 1 -n 10000 -p 0.90 > test.unk.pars
+Rscript $NGSJULIA/ngsPoly/writePars.R -k 1 -n 10000 -p -1 > test.auto.pars
+Rscript $NGSJULIA/ngsPoly/writePars.R -k 1 -n 10000 -p 0.5 > test.fold.pars
+Rscript $NGSJULIA/ngsPoly/writePars.R -k 0.9 -n 100000 -p 1 -s > test.snp.pars
+```
 
 where: 
 * '-k' denotes the shape of the site frequency spectrum:
@@ -59,27 +54,38 @@ where:
 	- k>1 : population bottleneck
 	- k<1 : population growth
 * '-n' is the effective population size
-* '-s' if a flag and specifies that SNPs have beeen called; actually this makes sense only if only one samples is analysed with called SNPs 
+* '-s' if a flag and specifies that SNPs have beeen called; this makes sense only if only one samples is analysed with called SNPs 
 * '-p' specifies how to define the probability that the ancestral state is the major allele, if 0.5 this means you assume folded data, if -1 it will compute it using the site frequency spectrum
 * '-h' prints a help message.
 
 You can simulate NGS data in mpileup format by specifying the ploidy of each individual and other parameters of the sequencing experiment
 and species.
-Run `Rscript simulMpileup.R --help` for help.
-After that, you can run `julia ngsPoly.jl --help` to see all options for estimating ploidy.
 
-### Case A: 2 haploids, 2 diploids, 2 triploids, 2 tetraploids, 2 pentaploids
+Run `Rscript $NGSJULIA/simulMpileup.R --help` for help.
+After that, you can run `$JULIA $NGSJULIA/ngsPoly/ngsPoly.jl --help` to see all options for estimating ploidy.
 
-	Rscript simulMpileup.R --out test.A.txt --copy 1x2,2x2,3x2,4x2,5x2 --sites 5000 --depth 100 --qual 20 --ksfs 1 --ne 10000 | gzip > test.A.mpileup.gz
+### Case A: 2 haploids, 2 diploids, 2 triploids, 2 tetraploids, 2 pentaploids, sequenced a 20X at the haploid level
 
-	less -S test.A.txt
+```
+Rscript $NGSJULIA/simulMpileup.R --out test.A.txt --copy 1x2,2x2,3x2,4x2,5x2 --sites 5000 --depth 20 --qual 20 --ksfs 1 --ne 10000 | gzip > test.A.mpileup.gz
 
-	zcat test.A.mpileup.gz | less -S
+less -S test.A.txt
 
-	# known ancestral state (reference)
-	julia ngsPoly.jl --fin test.A.mpileup.gz --fpars test.pars --fout test.A.out.gz --nSamples 10 --thSnp -1 --ploidy 1-5
+zcat test.A.mpileup.gz | less -S
+```
+
+```
+# known ancestral state (reference)
+$JULIA $NGSJULIA/ngsPoly/ngsPoly.jl --fin test.A.mpileup.gz --fpars test.pars --fout test.A.out.gz --nSamples 10 --thSnp -1 --ploidy 1-5
+
+zcat test.A.out.gz | less -S
+```
+
+```
 	# automatic set of probability of major allele being the ancestral state
 	julia ngsPoly.jl --fin test.A.mpileup.gz --fpars test.auto.pars --fout test.A.out.gz --nSamples 10 --thSnp -1 --ploidy 1-5 --keepRef 0
+```
+
 
 Please note that if `--fout` is given, the program will print some statistics for each site, including the estimate allele frequency.
 
@@ -109,18 +115,6 @@ Also note that by default no SNP calling is performed.
 In practise, one should also exclude trialleic sites (or in general with more than two alleles).
 This can be achieved by setting a threshold on `--thTria` (default is Inf).
 
-People contacted for potential application on real data and/or sugegstions and advice (in no precise order):
-
-* Simon O'Hanlon (Imperial), frog fungus
-* Peter Fields (UoBasel), snails
-* Melissa Wilson-Sayres (ASU), sex-linked
-* Benjamin Schwessinger (ANU), plant-fungi
-* Reuben Nowell (Silwood), bdelloid rotifers
-
-People to contact:
-
-* Yoshida et al. eLife 2013 (via Ben)
-* Lien Bertier (UC Davis, via Ben)
 
 
 

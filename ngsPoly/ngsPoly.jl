@@ -1,9 +1,9 @@
 
 # estimate ploidy from mpileup
 
-include("../templates.jl")
-include("../generics.jl")
-include("Poly_functions.jl")
+include("../structure.jl")
+include("../functions.jl")
+include("args.jl")
 
 alleles = ['A','C','G','T']
 

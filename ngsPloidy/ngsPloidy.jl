@@ -1,6 +1,6 @@
+# Estimate ploidy levels from gzipped mpileup files
 
-# estimate ploidy from mpileup
-
+# run 'julia ngsPloidy --help' for documentation
 include("../structure.jl")
 include("../functions.jl")
 include("args.jl")
@@ -11,7 +11,7 @@ alleles = ['A','C','G','T']
 parsed_args = parse_commandline_poly()
 ploidy = parsePloidy(parsed_args["ploidy"])
 
-## TEMPORARY, FIX THIS
+# at the moment only 1-8 ploidies are accepted
 if ploidy != [1,2,3,4,5,6,7,8]
 	println("Sorry, the option --ploidy has to be fixed to 1-8 by the user at the moment.")
 	exit(1)
@@ -165,7 +165,7 @@ GZip.open(parsed_args["fin"]) do file
 			else
 				# reference is ancestral, set as major
 				tmp_haploid = haploid
-				tmp_haploid[(1:length(alleles))[mySite.reference .== alleles]]=0
+			  	tmp_haploid[findmax(mySite.reference .== alleles)[2]] = 0 # set it max
 				(major, minor, minor2, minor3) = sortperm(tmp_haploid, rev=true)
 				tmp_haploid = 0
 			end

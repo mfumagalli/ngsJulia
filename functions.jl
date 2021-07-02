@@ -527,17 +527,16 @@ end
 # filter based on proportion or count of minor allele (major substracted)
 function calcNonMajorCounts(read::Reads)
 
-	alleles = ['A','C','G','T']
+	alleles = ["A","C","G","T"]
 	counts = Int.(zeros(4))
 
 	if length(read.base)>0
 		for i = 1:length(read.base)
-			counts[alleles.==split(read.base,"")[i][1]] += 1
+		     counts += (alleles.==split(read.base,"")[i])
 		end
 	end
 
-	# return sum(counts)-counts[sortperm(counts, rev=true)[1]]
-	return sum(counts)-sort!(counts)[1]
+	return sum(counts)-sort!(counts, rev=true)[1]
 end
 
 

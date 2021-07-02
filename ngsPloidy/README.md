@@ -1,4 +1,4 @@
-# ngsPoly
+# ngsPloidy
 Inference of ploidy from short-read sequencing data
 
 Collaborators, please check and edit my [WISHLIST](wishlist.md) and [RANDOM](random.md) thoughts.
@@ -41,11 +41,11 @@ NGSJULIA=~/Software/ngsJulia
 First, you need a create a file containing your prior probabilities and genotypes and major allele being the ancestral.
 This can be generated using the following R script.
 ```
-Rscript $NGSJULIA/ngsPoly/writePars.R -k 1 -n 10000 -p 1 > test.pars
-Rscript $NGSJULIA/ngsPoly/writePars.R -k 1 -n 10000 -p 0.90 > test.unk.pars
-Rscript $NGSJULIA/ngsPoly/writePars.R -k 1 -n 10000 -p -1 > test.auto.pars
-Rscript $NGSJULIA/ngsPoly/writePars.R -k 1 -n 10000 -p 0.5 > test.fold.pars
-Rscript $NGSJULIA/ngsPoly/writePars.R -k 0.9 -n 100000 -p 1 -s > test.snp.pars
+Rscript $NGSJULIA/ngsPloidy/writePars.R -k 1 -n 10000 -p 1 > test.pars
+Rscript $NGSJULIA/ngsPloidy/writePars.R -k 1 -n 10000 -p 0.90 > test.unk.pars
+Rscript $NGSJULIA/ngsPloidy/writePars.R -k 1 -n 10000 -p -1 > test.auto.pars
+Rscript $NGSJULIA/ngsPloidy/writePars.R -k 1 -n 10000 -p 0.5 > test.fold.pars
+Rscript $NGSJULIA/ngsPloidy/writePars.R -k 0.9 -n 100000 -p 1 -s > test.snp.pars
 ```
 
 where: 
@@ -71,12 +71,12 @@ Rscript $NGSJULIA/simulMpileup.R --out test.A.txt --copy 1x2,2x2,3x2,4x2,5x2 --s
 
 less -S test.A.txt
 
-zcat test.A.mpileup.gz | less -S
+less -S test.A.mpileup.gz
 ```
 
 ```
 # known ancestral state (reference)
-$JULIA $NGSJULIA/ngsPoly/ngsPoly.jl --fin test.A.mpileup.gz --fpars test.pars --fout test.A.out.gz --nSamples 10 --thSnp -1 --ploidy 1-5
+$JULIA $NGSJULIA/ngsPloidy/ngsPloidy.jl --fin test.A.mpileup.gz --fpars test.pars --fout test.A.out.gz --nSamples 10 --keepRef 1
 
 zcat test.A.out.gz | less -S
 ```

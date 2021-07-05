@@ -5,7 +5,7 @@ mutable struct Reads #mutable added
         baseQuality::AbstractString
 end
 
-Reads("N", "!")
+Reads("N", "!");
 
 mutable struct Site
 	chrom::SubString #as how to convert SubString{String} to AbstractString
@@ -13,7 +13,7 @@ mutable struct Site
 	reference::Char
 end
 
-Site("chrom", 0, 'N')
+Site("chrom", 0, 'N');
 
 # --------------------
 
@@ -25,13 +25,17 @@ struct Genotype <: Sequence
 	logLike::Float64
 end
 
-Genotype(0, "N", -1.0)
+Genotype(0, "N", -1.0);
 
 struct Frequency <: Sequence # Frequency is a subtype of Sequence
 	frequency::Float64
 	probability::Float64
 end
 
-Frequency(0,0)
+Frequency(0,0);
 
 # --------------------------
+
+alleles = ['A', 'C', 'G', 'T'];
+
+

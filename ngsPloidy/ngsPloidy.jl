@@ -5,7 +5,7 @@ include("../structure.jl")
 include("../functions.jl")
 include("args.jl")
 
-alleles = ['A','C','G','T']
+# alleles = ['A','C','G','T']
 
 # parsing parameters
 parsed_args = parse_commandline_poly()

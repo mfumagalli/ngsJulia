@@ -341,7 +341,7 @@ function readPriors(fname::AbstractString, ploidy::Array{Int64,1})
 	return (pMajorAnc, pGenos)
 end
 
-# calculate AIC and BIC from model likelihoods
+# calculate AIC and BIC from model likelihoods # deprecated, not working
 function calcModelStat(likes::Array{Float64,2}, ploidy::Array{Int64, 1}, sites::Array{Float64,1})
 
 	if length(ploidy)!=size(likes,2)

@@ -15,7 +15,7 @@ It requires the packages `GZip` and `ArgParse` which can be obtained with:
 ```
 julia> using Pkg
 julia> Pkg.add("GZip")
-julia> Pkg.add("GZip")
+julia> Pkg.add("ArgParse")
 ```
 
 ## Applications
@@ -70,53 +70,5 @@ In general, `ngsJulia` provides templates and functions useful for:
 * allele frequency estimation
 
 More specific usages can be found by investigating the code within `ngsPool` and `ngsPloidy`.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-calcNonMajorCounts(myReads)
-
-
-
-
-
-
-
-```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 

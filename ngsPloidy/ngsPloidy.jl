@@ -86,7 +86,8 @@ end
 maxNotPassed = parsed_args["nSamples"] - parsed_args["minSamples"]
 
 # initialise the nr of informative (used) sites
-infSites = 0
+infSites = zeros(parsed_args["nSamples"])
+allSites = 0
 # initialise matrix of likelihoods: nr_ploidy^nsamples possible events
 # matrix samples on rows, ploidies on columns
 polyLikes = zeros(parsed_args["nSamples"], length(ploidy))
@@ -94,9 +95,9 @@ polyLikes = zeros(parsed_args["nSamples"], length(ploidy))
 # read mpileup
 GZip.open(parsed_args["fin"]) do file
 
-	infSites = zeros(parsed_args["nSamples"])
-	allSites = 0
-	polyLikes = zeros(parsed_args["nSamples"], length(ploidy))
+	#infSites = zeros(parsed_args["nSamples"])
+	#allSites = 0
+	#polyLikes = zeros(parsed_args["nSamples"], length(ploidy))
 
 	for line in eachline(file)
 
@@ -153,7 +154,7 @@ GZip.open(parsed_args["fin"]) do file
 		# filter the site based on global depth
 		if (error == 0 && globalDepth>=parsed_args["minGlobalDepth"] && globalDepth<=parsed_args["maxGlobalDepth"] && (nonMajorCount>=parsed_args["minNonMajorCount"] || nonMajorCount==0) && (nonMajorProp>=parsed_args["minNonMajorProportion"] || nonMajorProp==0))
 
-			allSites += 1
+			global allSites += 1
 
 			# calculate genotype likelihoods assuming haploid for pooled samples
 			haploid = calcGenoLogLike1(myReads, mySite)
@@ -425,12 +426,12 @@ GZip.open(parsed_args["fin"]) do file
 				# test if enough samples passed the filter and if so update the polyLikes matrix
 				if samplesPassed >= parsed_args["minSamples"]
 
-					infSites += snpSite
+					global infSites += snpSite
 					for i in 1:size(polySite,1)
 						for j in 1:size(polySite,2)
 							if polySite[i,j]!=0
 								# sum across site
-								polyLikes[i,j] += log(polySite[i,j])
+								global polyLikes[i,j] += log(polySite[i,j])
 							end
 						end
 					end
@@ -491,16 +492,16 @@ println("LIKELIHOODS:\n", polyLikes)
 
 # do not calculate AIC/BIC anymore?
 #(aic, bic) = calcModelStat(polyLikes, ploidy, infSites)
-
 #println("AIC:\n", aic)
 #println("BIC:\n", bic)
 
 # maximum likelihood
+samPloidy = zeros(Int, parsed_args["nSamples"])
 maxLike = 0.0
-samPloidy = zeros(parsed_args["nSamples"])
 for n in 1:parsed_args["nSamples"]
-	samPloidy[n] = sortperm(vec(polyLikes[n,:]), rev=true)[1]
-	maxLike = maxLike + polyLikes[n,sortperm(vec(polyLikes[n,:]), rev=true)[1]]
+	maxLikeSample = findmax(polyLikes[n,:])
+	samPloidy[n] = maxLikeSample[2]
+	global maxLike += maxLikeSample[1]
 end
 
 println("Max like ploidy:", samPloidy, "\nwith log-like:", maxLike)
@@ -509,6 +510,4 @@ println("Max like ploidy:", samPloidy, "\nwith log-like:", maxLike)
 for p in 1:length(ploidy)
 	println("(LIKE-max like) all ploidy ", ploidy[p], ":", sum(polyLikes[:,p])-maxLike )
 end
-
-
 

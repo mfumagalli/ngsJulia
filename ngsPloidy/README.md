@@ -1,93 +1,123 @@
 # ngsPloidy
-Inference of ploidy from short-read sequencing data
+Inference of ploidy from short-read sequencing data.
 
-Collaborators, please check and edit my [WISHLIST](wishlist.md) and [RANDOM](random.md) thoughts.
+In this application, we show how `ngsJulia` can be used to implement a statistical test of ploidy level assignment from sequencing data.
+`ngsPloidy` takes in input gzipped mpileup files and returns several metrics of per-sample ploidy assignment. It also tests for aneuploidy within the sample. 
+'ngsPloidy` supports data filtering based on quality and depth values.
+
 
 ## Model
 
-Notation:
+With the following notation:
 * P: probability
-* D: data
+* D: observed sequencing data
 * O: ploidy
 * A: ancestral state
+`ngsPloidy` calculates the following log-likelihood for the whole sample:
 ```
 log(P(D, G, A|O_1=y_1, O_2=y_2, ..., O_n=y_n)) = sum_{samples} sum_{sites} P(D|G,A) P(G|O,A) P(A)
 ```
-	
 where:
-* P(D|G,A): genotype likelihood (assuming two alleles at most)
+* P(D|G,A): genotype likelihood
 * P(G|O,A): genotype probability (derived from the expected population allele frequency from the site frequency spectrum)
 * P(A): probability of correct assignment of ancestral state
+The model assumes that we observed at most two alleles. It can also calculate the per-sample log-likelihood by omitting ```sum_{samples}```.
 
-We assume we observed at most two alleles.
+`ngsPloidy` will output the most likely array of marginal ploidies, as well as the likelihood of all samples having the same ploidy.
 
-The program will output the most likely array of marginal ploidies, as well as the likelihood of all samples having the same ploidy.
 In the latter assumption, we can propose a Bayesian formulation:
-
 ```
 P(O_1=y, O_2=y, ..., O_n=y|D) = P(D|O) P(O) / P(D)
 ```
-
 where P(D|O) is calculated as aforementioned.
 
 ## Tutorial
 
-Initialise paths.
+### Initialisation
+
+Let's initialise paths to Julia language and `ngsJulia`.
 ```
 JULIA=~/Software/julia-1.6.1/bin/julia
 NGSJULIA=~/Software/ngsJulia
 ```
 
-First, you need a create a file containing your prior probabilities and genotypes and major allele being the ancestral.
-This can be generated using the following R script.
+First, we need a create a file containing probabilities of genotypes and of the major allele being ancestral. These probability files can be generated using the following R script:
 ```
-Rscript $NGSJULIA/ngsPloidy/writePars.R -k 1 -n 10000 -p 1 > test.pars
-Rscript $NGSJULIA/ngsPloidy/writePars.R -k 1 -n 10000 -p 0.90 > test.unk.pars
-Rscript $NGSJULIA/ngsPloidy/writePars.R -k 1 -n 10000 -p -1 > test.auto.pars
-Rscript $NGSJULIA/ngsPloidy/writePars.R -k 1 -n 10000 -p 0.5 > test.fold.pars
-Rscript $NGSJULIA/ngsPloidy/writePars.R -k 0.9 -n 100000 -p 1 -s > test.snp.pars
+Rscript $NGSJULIA/ngsPloidy/writePars.R --help
 ```
-
-where: 
+where:
 * '-k' denotes the shape of the site frequency spectrum:
-	- k=1 : constant population size
-	- k>1 : population bottleneck
-	- k<1 : population growth
+        - k=1 : constant population size
+        - k>1 : population bottleneck
+        - k<1 : population growth
 * '-n' is the effective population size
-* '-s' if a flag and specifies that SNPs have beeen called; this makes sense only if only one samples is analysed with called SNPs 
+* '-s' if a flag and specifies that SNPs have beeen called; this makes sense only if only one samples is analysed with called SNPs
 * '-p' specifies how to define the probability that the ancestral state is the major allele, if 0.5 this means you assume folded data, if -1 it will compute it using the site frequency spectrum
 * '-h' prints a help message.
 
-You can simulate NGS data in mpileup format by specifying the ploidy of each individual and other parameters of the sequencing experiment
-and species.
-
-Run `Rscript $NGSJULIA/simulMpileup.R --help` for help.
-After that, you can run `$JULIA $NGSJULIA/ngsPoly/ngsPoly.jl --help` to see all options for estimating ploidy.
-
-### Case A: 2 haploids, 2 diploids, 2 triploids, 2 tetraploids, 2 pentaploids, sequenced a 20X at the haploid level
-
+Therefore, we can create our file as:
 ```
-Rscript $NGSJULIA/simulMpileup.R --out test.A.txt --copy 1x2,2x2,3x2,4x2,5x2 --sites 5000 --depth 20 --qual 20 --ksfs 1 --ne 10000 | gzip > test.A.mpileup.gz
+Rscript $NGSJULIA/ngsPloidy/writePars.R -k 1 -n 10000 -p 1 > test.pars
+# without ancestral allele (probability of being correct of 0.90)
+Rscript $NGSJULIA/ngsPloidy/writePars.R -k 1 -n 10000 -p 0.90 > test.unk.pars
+# with automatic calculation of probability of misassignment of ancestral allele
+Rscript $NGSJULIA/ngsPloidy/writePars.R -k 1 -n 10000 -p -1 > test.auto.pars
+# with folded spectrum
+Rscript $NGSJULIA/ngsPloidy/writePars.R -k 1 -n 10000 -p 0.5 > test.fold.pars
+# with SNPs only
+Rscript $NGSJULIA/ngsPloidy/writePars.R -k 0.9 -n 100000 -p 1 -s > test.snp.pars
+```
 
+As an example,
+```
+cat test.pars
+```
+outputs in the first line the probabiolity of major allele being ancestral and derived, while in the remaining lines it gives the prior genotype probabilities for diallelic sites up to a maximum ploidy of 8.
+
+
+### Simulations
+
+We can simulate sequencing data in mpileup format by specifying the ploidy of each individual and other parameters of the sequencing experiment and species.
+We can use the script provided:
+```
+Rscript $NGSJULIA/simulMpileup.R --help
+```
+
+### Case studies
+
+Let's investigate several case studies to appreciate how `ngsPloidy` works.
+We can run
+```
+$JULIA $NGSJULIA/ngsPloidy/ngsPloidy.jl --help
+```
+to see all options available.
+
+#### Case A: 2 haploids, 2 diploids, 2 triploids, 2 tetraploids, 2 pentaploids, sequenced a 20X at the haploid level
+
+We simulate 100 sites all polymorphic in the population.
+```
+Rscript $NGSJULIA/simulMpileup.R --out test.A.txt --copy 1x2,2x2,3x2,4x2,5x2 --sites 100 --depth 20 | gzip > test.A.mpileup.gz
+
+# true data
 less -S test.A.txt
 
+# observed sequencing data
 less -S test.A.mpileup.gz
 ```
 
+If we assume that we know the ancestral state and it's equivalent to the reference state, we can run:
 ```
-# known ancestral state (reference)
-$JULIA $NGSJULIA/ngsPloidy/ngsPloidy.jl --fin test.A.mpileup.gz --fpars test.pars --fout test.A.out.gz --nSamples 10 --keepRef 1
-
-zcat test.A.out.gz | less -S
+$JULIA $NGSJULIA/ngsPloidy/ngsPloidy.jl --fin test.A.mpileup.gz --fpars test.pars --nSamples 10 --keepRef 1
 ```
+The option `--keepRef` forces the reference allele to be one of the two considered alleles and it is mandatory with `--fpars``.
 
+If `--fout` is given, the program will print some statistics for each site, including the estimated allele frequency.
 ```
-	# automatic set of probability of major allele being the ancestral state
-	julia ngsPoly.jl --fin test.A.mpileup.gz --fpars test.auto.pars --fout test.A.out.gz --nSamples 10 --thSnp -1 --ploidy 1-5 --keepRef 0
+# automatic set of probability of major allele being the ancestral state
+$JULIA $NGSJULIA/ngsPloidy/ngsPloidy.jl --fin test.A.mpileup.gz --fpars test.auto.pars --fout test.A.out.gz --nSamples 10 --keepRef 1
+
+less -S test.A.out.gz
 ```
-
-
-Please note that if `--fout` is given, the program will print some statistics for each site, including the estimate allele frequency.
 
 ### Case B: 10 triploids and no output file, simulating an error rate of assigning the ancestral state of 0.10
 

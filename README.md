@@ -26,7 +26,7 @@ We provide two novel applications of `ngsJulia` for low-coverage short-read sequ
 
 ### Custom applications
 
-`ngsJulia` has templates and functions that can be used to create custom analysis. For instance, imagine we have sequencing data of a diallelic site for a triploid organism and we wish to do genotype calling. Here how we can do it in `ngsJulia`.
+`ngsJulia` has templates and functions that can be used to create custom analysis. As an illustration, assume we have sequencing data of a diallelic site for a triploid organism and we wish to do genotype calling. Here how we can do it in `ngsJulia`.
 
 ```
 # load templates and functions

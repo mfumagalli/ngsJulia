@@ -104,7 +104,6 @@ If we assume that we know the ancestral state and it's equivalent to the referen
 $JULIA $NGSJULIA/ngsPloidy/ngsPloidy.jl --fin test.A.mpileup.gz --fpars test.pars --nSamples 10 --keepRef 1
 ```
 The option `--keepRef` forces the reference allele to be one of the two considered alleles and it is mandatory with `--fpars``.
-```
 
 Results are printed on the screen, and show:
 * nr of analysed sites: vector of sites that passed filtering for each sample

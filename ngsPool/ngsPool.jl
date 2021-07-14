@@ -2,8 +2,8 @@
 
 # run 'julia ngsPool --help' for documentation
 include("../structure.jl")
-include("../functions.jl")
-include("args.jl")
+include("../templates.jl")
+include("arguments.jl")
 
 # alleles = ['A','C','G','T']
 

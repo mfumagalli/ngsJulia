@@ -25,12 +25,6 @@ The model assumes that we observed at most two alleles. It can also calculate th
 
 `ngsPloidy` will output the most likely array of marginal ploidies, as well as the likelihood of all samples having the same ploidy.
 
-In the latter assumption, we can propose a Bayesian formulation:
-```
-P(O_1=y, O_2=y, ..., O_n=y|D) = P(D|O) P(O) / P(D)
-```
-where P(D|O) is calculated as aforementioned.
-
 ## Tutorial
 
 ### Initialisation
@@ -110,40 +104,122 @@ If we assume that we know the ancestral state and it's equivalent to the referen
 $JULIA $NGSJULIA/ngsPloidy/ngsPloidy.jl --fin test.A.mpileup.gz --fpars test.pars --nSamples 10 --keepRef 1
 ```
 The option `--keepRef` forces the reference allele to be one of the two considered alleles and it is mandatory with `--fpars``.
-
-If `--fout` is given, the program will print some statistics for each site, including the estimated allele frequency.
 ```
-# automatic set of probability of major allele being the ancestral state
+
+Results are printed on the screen, and show:
+* nr of analysed sites: vector of sites that passed filtering for each sample
+* log-likelihoods of per-sample ploidies: a matrix of nr_sample X nr_ploidies with the log-likelihood of each sample having a certain ploidy (rows are separated by ;)
+* #MLE vector of ploidies: the vector if individual maximum likelihood estimates of ploidy for each sample
+* #log-likelikehood of MLE vector of ploidies: the log-likelihood of the above vector of estimated ploidies
+* #LRT of aneuploidy: difference between MLE  vector of ploidies and the log-likliehood of all samples having the same ploidy, calculated for all tested ploidies
+
+----------------------------------------
+
+If `--fout` is given (optional), the program will print some statistics for each site, including the estimated allele frequency.
+```
+$JULIA $NGSJULIA/ngsPloidy/ngsPloidy.jl --fin test.A.mpileup.gz --fpars test.pars --fout test.A.out.gz --nSamples 10 --keepRef 1
+
+less -S test.A.out.gz
+```
+Specifically, this file reports:
+* chrom: chromosome
+* pos: position
+* ref: reference allele
+* depth: sequencing depth
+* ref/anc: reference or ancestral allele (inferred)
+* alt/der: alternate or derived allele (inferred)
+* lrtSnp: LRT for the site being a SNP
+* lrtBia: LRT for the site being biallelic
+* lrtTria: LRT for the site being triallelic
+* aaf: estimated alternate or ancestral allele frequency
+
+---------------------------------------------
+
+If `-fglikes` is given (optional), the program will ouput the per-site genotype likelihoods for each tested ploidy.
+```
+$JULIA $NGSJULIA/ngsPloidy/ngsPloidy.jl --fin test.A.mpileup.gz --fpars test.pars --fglikes test.A.glikes.gz --nSamples 10 --keepRef 1
+
+less -S test.A.glikes.gz
+```
+
+--------------------------
+
+We can also change the genotype probabilities in input. For instance, we can impose an automatic setting of the probability of major allele being the ancestral state
+```
 $JULIA $NGSJULIA/ngsPloidy/ngsPloidy.jl --fin test.A.mpileup.gz --fpars test.auto.pars --fout test.A.out.gz --nSamples 10 --keepRef 1
 
 less -S test.A.out.gz
 ```
 
-### Case B: 10 triploids and no output file, simulating an error rate of assigning the ancestral state of 0.10
+---------------------------
 
-	Rscript simulMpileup.R --out test.B.txt --copy 3x10 --sites 5000 --depth 100 --qual 20 --ksfs 1 --ne 10000 --panc 0.10 | gzip > test.B.mpileup.gz
+One additional possibility is also to do not impose any genotype probability based on the site frequency spectrum $P(G|O,A)$ (with `--fpars`) and use a uniform probability distribution instead (`--unif 1`).
+With this option you are required that all sites where all the samples have data are processed (i.e. `--minSamples` should be equal to `--nSamples`), otherwise the program will throw an error.
 
-	julia ngsPoly.jl --fin test.B.mpileup.gz --fpars test.unk.pars --nSamples 10 --thSnp -1 --ploidy 1-5
+```
+$JULIA $NGSJULIA/ngsPloidy/ngsPloidy.jl --fin test.A.mpileup.gz --unif 1 --nSamples 10 --minSamples 10
+```
 
-### Case C: 1 diploid, 8 triploids, 1 tetraploid with ploidy prior and folded data
+---------------------------
 
-	Rscript simulMpileup.R --out test.C.txt --copy 2x1,3x8,4x1 --sites 5000 --depth 100 --qual 20 --ksfs 1 --ne 10000 | gzip > test.C.mpileup.gz
+Finally, we can even call genotypes and consider the likelihoods of called genotypes only (`-callGeno`), although this is not recommended for low-coverage sequencing data.
 
-	julia ngsPoly.jl --fin test.C.mpileup.gz --fpars test.fold.pars --fout testC.out.gz --nSamples 10 --thSnp -1 --ploidy 1-5 --prior 0,0.1,0.8,0.1,0
+```
+$JULIA $NGSJULIA/ngsPloidy/ngsPloidy.jl --fin test.A.mpileup.gz --unif 1 --callGeno 1 --nSamples 10 --minSamples 10
+```
+
+
+#### Case B: 10 triploids and no output file, simulating an error rate of assigning the ancestral state of 0.10
+
+We can simulate such scenario with the following line:
+```
+Rscript $NGSJULIA/simulMpileup.R --out test.B.txt --copy 3x10 --sites 100 --depth 20 --panc 0.1 | gzip > test.B.mpileup.gz
+```
+
+As there is uncertainty in the polarisation, we can incorporate such error in the genotype probability file calcolated at the beginning.
+As further illustration, we will filter out bases with a uqlaity score lower than 15 in Phred score.
+```
+$JULIA $NGSJULIA/ngsPloidy/ngsPloidy.jl	--fin test.B.mpileup.gz --fpars test.unk.pars --nSamples 10 --keepRef 1 --minQ 15
+```
+As you can see, the test for aneuploidy is rejected as the most likely vector of ploidies supports all samples being triploid. 
+
+### Case C: 1 diploid, 8 triploids, 1 tetraploid with and folded allele frequencies
+
+This scenario can be simulated with:
+```
+Rscript $NGSJULIA/simulMpileup.R --out test.C.txt --copy 2x1,3x8,4x1 --sites 100 --depth 20 | gzip > test.C.mpileup.gz
+```
+
+As the data is folded (we have no information on which allele is ancestral or derived), we can use the appropriate genotype probability file calculated above.
+```
+$JULIA $NGSJULIA/ngsPloidy/ngsPloidy.jl --fin test.C.mpileup.gz --fpars test.fold.pars --nSamples 10 --keepRef 1
+```
 
 ### Case D: 1 tetraploid with Ne=1e6 and experiencing population growth with SNP calling
 
-	Rscript simulMpileup.R --out test.D.txt --copy 4x1 --sites 5000 --depth 100 --qual 20 --ksfs 0.90 --ne 100000 | gzip > test.D.mpileup.gz
+In this case we have only one sample and we will attempt to infer its ploidy for called SNPs.
+Let's assume we have 1000 sites polymorphic in the population. As we have one sample, we assume it is sequenced at higher depth.
+This scenario can be simulated with (note that, as an illustration, we are not generating an output file for the real data):
+```
+Rscript $NGSJULIA/simulMpileup.R --copy 4x1 --sites 1000 --depth 30 --ksfs 0.90 --ne 100000 | gzip > test.D.mpileup.gz
+```
 
-	julia ngsPoly.jl --fin test.D.mpileup.gz --fpars test.snp.pars --fout test.D.out.gz --nSamples 1 --thSnp 7.82 --ploidy 1-5
+Given that we wish to call SNPs, we need to indicate the appropriate file for genotype probabilities and a threshold for SNP calling (`--thSnp` in X^2 score value, here 6.64 equivalent to a p-value of 0.01).
 
+```
+$JULIA $NGSJULIA/ngsPloidy/ngsPloidy.jl --fin test.D.mpileup.gz --fpars test.snp.pars --keepRef 1 --nSamples 1 --thSnp 6.64
+```
 Please note that when `test.snp.pars` is used haploid likelihoods cannot be calculated.
-Also note that by default no SNP calling is performed.
+Also note that in this case the number of analysed sites (SNPs) is less that the number of simulated sites.
 
-## Real data
+## Further options
 
-In practise, one should also exclude trialleic sites (or in general with more than two alleles).
-This can be achieved by setting a threshold on `--thTria` (default is Inf).
+All options available can be retrieved by:
+```
+$JULIA $NGSJULIA/ngsPloidy/ngsPloidy.jl --help
+```
+Several filtering options on base quality, depth and proportion of minor reads are available. Likewise, options to include only bialleic sites (i.e. exclude triallelic and multiallelic sites) can be used.
+Results may vary depending on the filtering options and users are encourage to consider how their inferences are robust to the data processing pipeline.
 
 
 

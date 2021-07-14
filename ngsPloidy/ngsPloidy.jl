@@ -1,9 +1,9 @@
 # Estimate ploidy levels from gzipped mpileup files
 
 # run 'julia ngsPloidy --help' for documentation
-include("../structure.jl")
+include("../templates.jl")
 include("../functions.jl")
-include("args.jl")
+include("arguments.jl")
 
 # alleles = ['A','C','G','T']
 
@@ -475,10 +475,6 @@ if parsed_args["fglikes"] != "NULL"
         close(fglikes)
 end
 
-if parsed_args["debug"]<2
-	println("infSites:", infSites)
-end
-
 # fix NaN to -Inf
 for i in 1:size(polyLikes,1)
 	for j in 1:size(polyLikes,2)
@@ -488,7 +484,9 @@ for i in 1:size(polyLikes,1)
 	end
 end
 
-println("LIKELIHOODS:\n", polyLikes)
+# print results to stdout
+println("#nr of analysed sites:", infSites)
+println("#log-likelihoods of per-sample ploidies:\n", polyLikes)
 
 # do not calculate AIC/BIC anymore?
 #(aic, bic) = calcModelStat(polyLikes, ploidy, infSites)
@@ -504,10 +502,20 @@ for n in 1:parsed_args["nSamples"]
 	global maxLike += maxLikeSample[1]
 end
 
-println("Max like ploidy:", samPloidy, "\nwith log-like:", maxLike)
+println("#MLE vector of ploidies:", samPloidy)
+println("#log-likelikehood of MLE vector of ploidies:", maxLike)
 
 # all ploidy - maximum likelihood
+LRTaneuploidy = zeros(length(ploidy))
 for p in 1:length(ploidy)
-	println("(LIKE-max like) all ploidy ", ploidy[p], ":", sum(polyLikes[:,p])-maxLike )
+	LRTaneuploidy[p] = maxLike - sum(polyLikes[:,p])
 end
+println("#LRT of aneuploidy:", LRTaneuploidy)
+
+
+
+
+
+
+
 

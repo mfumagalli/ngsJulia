@@ -148,7 +148,7 @@ function parse_commandline_poly()
 		"--printSites"
 			help =  "print on stdout every --printSites sites"
 			arg_type = Int64
-			default = 100000
+			default = 10000
 
 	end
 
@@ -361,6 +361,7 @@ function calcModelStat(likes::Array{Float64,2}, ploidy::Array{Int64, 1}, sites::
 
 		for p = 1:length(ploidy)
 
+			# this gives error, no method matching +(::Vector{Int64}, ::Int64)
 			bic[n,p] = -2*likes[n,p]+(k[p]*log(sites[n]))
 			aic[n,p] = (2*k[p])-(2*likes[n,p]) + ((2*k[p]*(k[p]+1))/(sites[n]-k[p]-1))
 

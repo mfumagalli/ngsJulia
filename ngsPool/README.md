@@ -81,8 +81,8 @@ The output file reports values for all sites that passed filtering:
 less -S test.out.gz
 ```
 and contains two additiona columns:
-* saf_MLE (MLE of allele frequency from sample allele frequency likelihoods)
-* saf_E (expected value of allele frequency from sample allele frequency likelihoods and uniform prior probability)
+* `saf_MLE` (MLE of allele frequency from sample allele frequency likelihoods)
+* `saf_E` (expected value of allele frequency from sample allele frequency likelihoods and uniform prior probability)
 ```
 
 Additionally, a new file is generated:
@@ -117,10 +117,10 @@ Let's assume we have one target SNP and two groups, cases and controls, and we w
 We simulate different allele frequencis in two groups from low-depth pooled NGS data with
 ```
 # cases
-Rscript $NGSJULIA/simulMpileup_qq.R --out /dev/null --copy 2x200 --sites 1 --depth 1 --qq 0.1 --pool | gzip > test.cases.mpileup.gz
+Rscript `$NGSJULIA/simulMpileup_qq.R` --out /dev/null --copy 2x200 --sites 1 --depth 1 --qq 0.1 --pool | gzip > test.cases.mpileup.gz
 
 # controls
-Rscript $NGSJULIA/simulMpileup_qq.R --out /dev/null --copy 2x200 --sites 1 --depth 1 --qq 0.05 --pool | gzip > test.controls.mpileup.gz
+Rscript `$NGSJULIA/simulMpileup_qq.R` --out /dev/null --copy 2x200 --sites 1 --depth 1 --qq 0.05 --pool | gzip > test.controls.mpileup.gz
 ```
 
 We calculate sample allele frequency likelihoods with:

@@ -22,8 +22,8 @@ end
 # open output file for writing
 f2 = GZip.open(parsed_args["fout"], "w")#write
 # write header
-write(f2, join( ("##chrom", "position", "reference", "nonreference", "major",
-	"minor", "lrtSNP", "lrtBia", "lrtTria", "maf", "freqMax", "freqE"), "\t"),
+write(f2, join( ("##chromosome", "position", "reference", "nonreference", "major",
+	"minor", "lrtSNP", "lrtBia", "lrtTria", "maf", "saf_MLE", "saf_E"), "\t"),
 	"\n")
 
 if parsed_args["fsaf"]!="/dev/null"

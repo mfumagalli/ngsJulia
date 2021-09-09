@@ -33,7 +33,7 @@ function parse_commandline_pool()
 		"--lrtSnp"
 			help = "LRT for SNP calling" #likelihood ratio test statistic
 			arg_type = Float64
-			default = -Inf #e.g. if 7.82 the LRT value in chisquare value in one degree of freedom p value is 0.01
+			default = -Inf #e.g. if 6.64 the LRT value in chisquare value in one degree of freedom p value is 0.01
 
 		"--lrtBia"
 			help = "LRT for biallelic calling"

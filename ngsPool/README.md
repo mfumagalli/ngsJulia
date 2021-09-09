@@ -37,41 +37,114 @@ We can retrieve a list of all available options by typing:
 ```
 $JULIA $NGSJULIA/ngsPool/ngsPool.jl --help
 ```
+The package requires a gzipped mpileup as input and the name of the output file in plain text format.
+Several options for data filtering are available.
+Let's understand its usage with several examples.
 
-
-
+In many cases, the sample size is unknown. `ngsPool` provides a possibiity to obtain a maximum likelihood estimation (MLE) of the minor allele frequency under these circumstances.
+using the simulated data set, we can obtain per-site MLE of allele frequencies with:
 ```
-$JULIA $NGSJULIA/ngsPool/ngsPool.jl --fin test.mpileup.gz --fout test.out.gz --lrtSnp 7.82
-
+$JULIA $NGSJULIA/ngsPool/ngsPool.jl --fin test.mpileup.gz --fout test.out.gz --lrtSnp 6.64
+```
+As an additional parameter, we specified a threshold for a Likelihood Ratio Test (LRT) for SNP calling (6.64 corresponds to a p-value of 0.01).
+The ouput file can be visualised with:
+```
 less -S test.out.gz
 ```
+and for each called SNP provides the following information:
+* chromosome
+* position        
+* reference allele
+* nonreference allele
+* major allele (inferred)
+* minor allele (inferred) 
+* lrtSNP (LRT statistic for SNP calling)
+* lrtBia  (LRT statistic for bialleic site calling)
+* lrtTria ((LRT statistic for trialleic site calling) 
+* maf (estimated minor allele frequency)
+The remaining columns are disabled using these options.
 
-## Estimate allele frequency likelihoods without SNP calling
+## Estimate allele frequency without SNP calling and known sample size
 
-`nChroms` is equal to (ploidy x individuals), 2x8 + 3x4 = 28. If this value is set it enables the calculation of sample allele frequency likelihoods (`saf.gz` file).
+With known sample size, `ngsPool` calculates per-site sample allele frequency likelihoods which can be used to provide estimators of allele frequency or for further downstream analyses.
+To this aim, the option `--nChroms` should be set equal to the product between ploidy and number of analysed samples.
+Additionally if the option `--fsaf` is set, a gzipped text file with sample allele frequency likelihoods is returned.
 
+Following our previous example, we can estimate allele frequencies (and their likelihoods) with:
 ```
-$JULIA $NGSJULIA/ngsPool/ngsPool.jl --fin test.mpileup.gz --fout test.out.gz --nChroms 28 --fsaf test.saf.gz
+$JULIA $NGSJULIA/ngsPool/ngsPool.jl --fin test.mpileup.gz --fout test.out.gz --nChroms 20 --fsaf test.saf.gz
+```
+Note that we are not doing SNP calling as ``--lrtSnp`` is not set.
 
+The output file reports values for all sites that passed filtering:
+```
 less -S test.out.gz
+```
+and contains two additiona columns:
+* saf_MLE (MLE of allele frequency from sample allele frequency likelihoods)
+* saf_E (expected value of allele frequency from sample allele frequency likelihoods and uniform prior probability)
+```
 
+Additionally, a new file is generated:
+```
 less -S test.saf.gz
 ```
+reporting the sample allele frequency log-likelihoods at each site (scaled to the ML).
 
-## Site frequency spectrum
 
+## Site frequency spectrum (SFS)
+
+The file containing the sample allele frequency log-likelihoods can be exploited for further downstream analyses.
+For instance, `ngsPool` provides a script to estimate the SFS with three different methods.
+This can be achieved with:
 ```
 Rscript $NGSJULIA/ngsPool/poolSFS.R test.saf.gz > sfs.txt
-
-less -S sfs.txt
 ```
+
+The output file is accessible with
+```
+cat sfs.txt
+```
+and reports the estimated SFS based on:
+* count: counting over MLE of per-site allele frequencies
+* fit_count: fitting an exponential curve with counts of MLE of per-site allele frequencies
+* fit_saf: fitting an exponential curve with per-site sample allele frequency likelihoods
 
 # Association test
 
+`ngsPool` provides a script to calculate association tests from sample allele frequency likelihoods.
+Let's assume we have one target SNP and two groups, cases and controls, and we wish to test for a significant difference in allele frequencies.
+We simulate different allele frequencis in two groups from low-depth pooled NGS data with
+```
+# cases
+Rscript $NGSJULIA/simulMpileup_qq.R --out /dev/null --copy 2x200 --sites 1 --depth 1 --qq 0.1 --pool | gzip > test.cases.mpileup.gz
+
+# controls
+Rscript $NGSJULIA/simulMpileup_qq.R --out /dev/null --copy 2x200 --sites 1 --depth 1 --qq 0.05 --pool | gzip > test.controls.mpileup.gz
+```
+
+We calculate sample allele frequency likelihoods with:
+```
+# cases
+$JULIA $NGSJULIA/ngsPool/ngsPool.jl --fin test.cases.mpileup.gz --fout /dev/null --nChroms 300 --fsaf test.cases.saf.gz
+
+# controls
+$JULIA $NGSJULIA/ngsPool/ngsPool.jl --fin test.controls.mpileup.gz --fout /dev/null --nChroms 300 --fsaf test.controls.saf.gz
+```
+
+These files are then used to test for association:
+```
+Rscript $NGSJULIA/ngsPool/poolAssoc.R test.cases.saf.gz test.controls.saf.gz > assoc.txt
+```
+and the resulting file is accessible with
+```
+cat assoc.txt
+```
+and shows LRT statistic and p-value (in log scale).
+With multiple SNPs, each test result will be shown on different lines.
 
 
 
 
-## Assessment of its performance
-Compared with Popoolation2, Snape and VarScan (https://github.com/Amend-1634/ngsPool_assessment)
+
 

@@ -1,8 +1,8 @@
 # SNP calling, allele frequency estimation, sample allele frequency likelihoods from pooled sequencing data with gzipped mpileup files as input
 
 # run 'julia ngsPool --help' for documentation
-include("../structure.jl")
 include("../templates.jl")
+include("../functions.jl")
 include("arguments.jl")
 
 # alleles = ['A','C','G','T']

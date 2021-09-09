@@ -1,33 +1,44 @@
 # ngsPool
-Estimation of allele frequency from pooled-sequencing data
 
-## Installation
+Estimation of allele frequency (and more) from pooled sequencing data using `ngsJulia`.
+`ngsPool` implements several estimators of allele frequencies from pooled NGS data.
+It provides additional scripts for estimators of the site frequency spectrum (SFS) and for association tests.
 
-        cd ngsPool
-        ln -s ../ngsJulia/simulMpileup.R simulMpileup.R
-        ln -s ../ngsJulia/generics.jl generics.jl
-	ln -s ../ngsJulia/templates.jl templates.jl
-
-## Simulate pool data 
-
+To showcase its use, this tutorial will simulate some pooled sequencing data and demonstrate the various options and possible analyses implemented in `ngsPool`.
+Before starting, please specify paths to both Julia language and ngsJulia (yours could be different):
 ```
 JULIA=~/Software/julia-1.6.1/bin/julia
 NGSJULIA=~/Software/ngsJulia
+```
 
+## Simulate pooled NGS data 
+
+We can simulate NGS data from a pooled sequencing experiment using a script provided in `ngsJulia`.
+We can explore its options:
+```
 Rscript $NGSJULIA/simulMpileup.R --help
+```
 
-# e.g. simulate 10 diploids, 1000 base pairs with an average depth of 20 and base quality of 20 in phred schore, from a population of 10,000 effective size under constant-size evolution:
-
+Let's assume that we wish to simulate 10 diploid genomes, 1000 base pairs each with an average sequencing depth of 20 and base quality of 20 in Phred score. Samples come from a population of 10,000 effective size under constant-size evolution.
+We can do that by running:
+```
 Rscript $NGSJULIA/simulMpileup.R --out test.txt --copy 2x10 --sites 1000 --depth 20 --qual 20 --ksfs 1 --ne 10000 --pool | gzip > test.mpileup.gz
-
+```
+and explore the files generated with:
+```
 ls test.*
 ```
+The file `test.txt` contains the true genotypes while `test.mpileup.gz` is a gzipped [mpileup](http://www.htslib.org/doc/samtools-mpileup.html) file containing information on sequencing data 
 	
-## Estimate allele frequencies with SNP calling and frequentist approach
+## Estimate allele frequencies with SNP calling and unknown sample size
 
+Let's explore of `ngsPool` can be used to estimate allele frequencies.
+We can retrieve a list of all available options by typing:
 ```
 $JULIA $NGSJULIA/ngsPool/ngsPool.jl --help
 ```
+
+
 
 ```
 $JULIA $NGSJULIA/ngsPool/ngsPool.jl --fin test.mpileup.gz --fout test.out.gz --lrtSnp 7.82

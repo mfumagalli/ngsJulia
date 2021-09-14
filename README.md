@@ -6,9 +6,17 @@ Two implementations for analysing pooled sequencing data and polyploid genomes a
 
 ## Installation
 
+You can clone the repository with:
 ```
 git clone https://github.com/mfumagalli/ngsJulia.git
 ```
+
+If you wish to make sure you are using the most updated version you can do that with:
+```
+cd ngsJulia
+git pull
+```
+
 
 ## Dependencies
 
@@ -29,29 +37,31 @@ We provide two novel applications of `ngsJulia` for low-coverage short-read sequ
 ### Custom applications
 
 `ngsJulia` has templates and functions that can be used to create custom analysis. 
-As an illustration, assume we have sequencing data of a diallelic site for a triploid organism and we wish to do genotype calling. 
+As an illustration, assume we have sequencing data of a diallelic site for a __triploid__ organism and we wish to do genotype calling. 
 Here how we can do it in `ngsJulia`.
 
-Load templates and functions in `ngsJulia`.
+Open a terminal in Julia (e.g., typing `~/Software/julia-1.6.1/bin/julia`) and load templates and functions in `ngsJulia`:
 ```
-julia> include("structure.jl")
-julia> include("functions.jl")
+julia> include("templates.jl");
+julia> include("functions.jl");
 ```
 
 Let's assume we have the following sequencing data stored in these variables:
 ```
-julia> myReads=Reads("AAGAGGAAAC","5342123560") # 10 reads and associated base qualities in Phred scores
-julia> mySite=Site("chrom12", 34512, 'A') # chromosome, position and reference allele
+julia> myReads=Reads("AGAAAGAAAA","1533474323") # 10 reads and associated base qualities in Phred scores
+julia> mySite=Site("chrom12", 835132, 'A') # chromosome, position and reference allele
 ```
-These variable can be easily created by reading mpileup files, for instance using the following routine for one sample:
+These variable can be easily created by reading mpileup files, for instance using the following routine for this example:
 ```
-#GZip.open(parsed_args["input.mpileup.gz"]) do file
-#	for line in eachline(file)
-#		l = (split(line, "\t"))
-#		myReads = Site(l[1], parse(Int64, l[2]), uppercase(Char(l[3][1])))
-#		mySite = Reads(chomp(l[5]), chomp(l[6]))
-#	end
-#end
+using GZip
+
+GZip.open("input.mpileup.gz") do file
+	for line in eachline(file)
+		l = (split(line, "\t"))
+		global mySite = Site(l[1], parse(Int64, l[2]), uppercase(Char(l[3][1])))
+		global myReads = Reads(chomp(l[5]), chomp(l[6]))
+	end
+end
 ```
 
 We can visualise the nucleotide likelihoods:
@@ -60,7 +70,7 @@ julia> nucleo_likes = calcGenoLogLike1(myReads, mySite)
 ```
 which in turn can be used to estimate major and minor alleles:
 ```
-julia> (major, minor, minor2, minor3) = sortperm(nucleo_likes, rev=true)
+julia> (major, minor, minor2, minor3) = sortperm(nucleo_likes, rev=true);
 julia> println("Major allele is ", alleles[major], " and minor allele is ", alleles[minor])
 ```
 

@@ -62,6 +62,7 @@ and for each called SNP provides the following information:
 * lrtBia  (LRT statistic for bialleic site calling)
 * lrtTria ((LRT statistic for trialleic site calling) 
 * maf (estimated minor allele frequency)
+
 The remaining columns are disabled using these options.
 
 ## Estimate allele frequency without SNP calling and known sample size

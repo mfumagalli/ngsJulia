@@ -510,7 +510,7 @@ LRTaneuploidy = zeros(length(ploidy))
 for p in 1:length(ploidy)
 	LRTaneuploidy[p] = maxLike - sum(polyLikes[:,p])
 end
-println("#LRT of aneuploidy:", LRTaneuploidy)
+println("#LRT of aneuploidy:", LRTaneuploidy * 2)
 
 
 

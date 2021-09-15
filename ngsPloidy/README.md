@@ -76,7 +76,7 @@ $JULIA $NGSJULIA/ngsPloidy/ngsPloidy.jl --help
 ```
 to see all options available.
 
-#### Case A: 2 haploids, 2 diploids, 2 triploids, 2 tetraploids, 2 pentaploids, sequenced at 20X at haploid level
+### Case A: 2 haploids, 2 diploids, 2 triploids, 2 tetraploids, 2 pentaploids, sequenced at 20X at haploid level
 
 We simulate 100 sites all polymorphic in the population with:
 ```
@@ -184,7 +184,7 @@ $JULIA $NGSJULIA/ngsPloidy/ngsPloidy.jl	--fin test.B.mpileup.gz --fpars test.unk
 
 As you can evinced from the resulted, the test for aneuploidy is rejected as the most likely vector of ploidies supports all samples being triploid. 
 
-## Case C: 1 diploid, 8 triploids, 1 tetraploid with and folded allele frequencies
+### Case C: 1 diploid, 8 triploids, 1 tetraploid with and folded allele frequencies
 
 This scenario can be simulated with:
 ```
@@ -193,10 +193,15 @@ Rscript $NGSJULIA/simulMpileup.R --out test.C.txt --copy 2x1,3x8,4x1 --sites 100
 
 As the data is folded (we have no information on which allele is ancestral or derived), we can use the appropriate genotype probability previously calculated:
 ```
-$JULIA $NGSJULIA/ngsPloidy/ngsPloidy.jl --fin test.C.mpileup.gz --fpars test.fold.pars --nSamples 10 --keepRef 1
+$JULIA $NGSJULIA/ngsPloidy/ngsPloidy.jl --fin test.C.mpileup.gz --fpars test.fold.pars --nSamples 10 --keepRef 1 > test.C.out
 ```
 
-From the results, aneuploidy is still statistically supported.
+From the results `cat test.C.out`, aneuploidy is still statistically supported.
+We also provide a script to easily extract LRT statistic values for both ploidy and aneuploidy tests.
+```
+Rscript $NGSJULIA/ngsPloidy/ploidyLRT.R test.C.out
+```
+
 
 ### Case D: 1 tetraploid with Ne=1e6, experiencing population growth with SNP calling
 

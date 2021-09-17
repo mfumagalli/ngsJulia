@@ -46,7 +46,9 @@ using the simulated data set, we can obtain per-site MLE of allele frequencies w
 ```
 $JULIA $NGSJULIA/ngsPool/ngsPool.jl --fin test.mpileup.gz --fout test.out.gz --lrtSnp 6.64
 ```
-As an additional parameter, we specified a threshold for a Likelihood Ratio Test (LRT) for SNP calling (6.64 corresponds to a p-value of 0.01).
+As an additional parameter, we specified a threshold for a Likelihood Ratio Test (LRT) for SNP calling.
+In this example, the choice of 6.64 corresponds to a p-value of 0.01 (3.84 and 10.83 would correspond to p-values of 0.05 and 0.001, respectively).
+
 The ouput file can be visualised with:
 ```
 less -S test.out.gz

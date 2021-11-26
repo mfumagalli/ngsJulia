@@ -489,7 +489,7 @@ function convertSyms(read::Reads, site::Site)
 		  	#if parse(Int, read.base[i+2])<10 # indel longer than 9
 		  	#	println("generic_line485  ", typeof(read.base[i+1]))
 		  	#	lenIndel = parse(Int, string(read.base[i+1], read.base[i+2])) + 1 #Matteo: digit, so +1 #?
-			end
+		  	#end
 			#if parse(Int, read.base[i+3])<10 # indel longer than 99
 			#	lenIndel = parse(Int, string(read.base[i+1], read.base[i+2], read.base[i+3]))
 			#end

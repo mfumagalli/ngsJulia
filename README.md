@@ -17,7 +17,6 @@ cd ngsJulia
 git pull
 ```
 
-
 ## Dependencies
 
 `ngsJulia` has been tested with Julia Version 1.6.1 (2021-04-23) available [here](https://julialang.org/downloads/).
@@ -95,4 +94,9 @@ In general, `ngsJulia` provides templates and functions useful for:
 * allele frequency estimation
 
 More specific usages can be found by investigating the code within `ngsPool` and `ngsPloidy`.
+
+## Reproducibility
+
+Archived code and scripts to replicate all results in the accompanying paper are available the `paper` folder.
+
 

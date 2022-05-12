@@ -462,7 +462,8 @@ end
 function convertSyms(read::Reads, site::Site)
 
 	bases = ""
-	indexDelN = Array{Int64, 1} #position on original pileup read
+	#indexDelN = Array{Int64, 1} #position on original pileup read
+	indexDelN = []
 
 	i=1
 	while i <= length(read.base)
@@ -524,7 +525,16 @@ function filterReads(read::Reads; phredScale::Int64=33, minBaseQuality::Int64=5)
 	return filt
 end
 
-# filter based on proportion or count of minor allele (major substracted)
+"""
+	calcNonMajorCounts(read::Reads)
+
+This function receives a read object and returns the sum of non major alleles.
+This is used to filter data based on the proportion (or count) of minor allele.
+
+```
+x-y
+```
+"""
 function calcNonMajorCounts(read::Reads)
 
 	alleles = ["A","C","G","T"]

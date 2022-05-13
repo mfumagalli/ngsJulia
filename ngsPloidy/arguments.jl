@@ -3,6 +3,7 @@
 
 import GZip
 using ArgParse
+using Combinatorics
 
 # http://argparsejl.readthedocs.io/en/latest/argparse.html
 # parsing for ngsPoly

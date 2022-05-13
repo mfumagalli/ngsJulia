@@ -87,6 +87,44 @@ function calcGenoLogLike1_Tria(read::Reads, site::Site, major::Int64, minor::Int
 	return like
 end
 
+#Amend
+function calcGenoLogLikeN_MajorMinor(N::Int64,read::Reads,site::Site, major::Int64, minor::Int64; phredScale::Int64=33)
+
+	alleles = ['A','C','G','T']
+        # log_likes=[0.0]*(N+1)
+        log_likes=repeat(0, N+1)
+        # it = -1
+        it = 0
+        mm = [major, minor]
+        #Pkg.add("Combinatorics"); using Combinatorics.combinations
+        # mmList = list(combinations_with_rep(mm,N)) # List of major minor combinations
+        mmList = collect(with_replacement_combinations(mm,N))
+
+        # cycle across all possible genotypes
+        # readLen = len(read.base)
+        readLen = length(read.base)
+
+        for subList in mmList #each genotype
+                it += 1
+                # for i in range(readLen)
+                 for i in 1:readLen # each base in reads
+                        # bP = 10.*((phredScale-ord(str(read.base_quality[i])))/10)
+                        bP = 10^((phredScale - Int64(read.baseQuality[i])  )/10)
+                        sublike = 0.0
+                        for item in subList #each base in genotype
+                                if alleles[item] == read.base[i]
+                                        sublike += (1-bP)/N
+                                else
+                                        sublike += (bP/3)/N
+                                end
+                                log_likes[it] += math.log(sublike)
+                        end
+                  end
+          end
+        return log_likes
+end
+
+
 
 # calculate genotype likelihoods (in ln format) in case of haploids for
  # Major and Minor
@@ -530,10 +568,6 @@ end
 
 This function receives a read object and returns the sum of non major alleles.
 This is used to filter data based on the proportion (or count) of minor allele.
-
-```
-x-y
-```
 """
 function calcNonMajorCounts(read::Reads)
 

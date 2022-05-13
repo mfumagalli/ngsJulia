@@ -20,11 +20,12 @@ git pull
 ## Dependencies
 
 `ngsJulia` has been tested with Julia Version 1.6.1 (2021-04-23) available [here](https://julialang.org/downloads/).
-It requires the packages `GZip` and `ArgParse` which can be obtained with:
+It requires the packages `GZip`, `ArgParse`, and `Combinatorics` which can be obtained with:
 ```
 julia> using Pkg
 julia> Pkg.add("GZip")
 julia> Pkg.add("ArgParse")
+julia> Pkg.add("Combinatorics")
 ```
 
 ## Applications

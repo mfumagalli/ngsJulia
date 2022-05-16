@@ -1,4 +1,21 @@
 
+function calcAlleleLike(read::Reads, allele::Array{Int64}, phredScale::Int64=33)
+
+        like = 0.0
+
+	for i = 1:length(read.base) # each based
+        	bP = 10^((phredScale - Int64(read.baseQuality[i]))/10)
+                sublike = 0.0
+                if read.base[i] in ALLELES[allele]
+                	sublike += (1-bP)/ploidy
+            	else
+                  	sublike += (bP/3)/ploidy
+                end
+                like += log(sublike)
+        end
+        return like
+end
+
 function calcGenoLike(read::Reads, allele::Array{Int64}, ploidy::Int64, phredScale::Int64=33)
 
         likes = zeros(ploidy+1)
@@ -11,7 +28,7 @@ function calcGenoLike(read::Reads, allele::Array{Int64}, ploidy::Int64, phredSca
                         bP = 10^((phredScale - Int64(read.baseQuality[i]))/10)
                         sublike = 0.0
                         for item in genotype # each base in genotype
-                                if alleles[item]==read.base[i]
+                                if ALLELES[item]==read.base[i]
                                         sublike += (1-bP)/ploidy
                                 else
                                         sublike += (bP/3)/ploidy

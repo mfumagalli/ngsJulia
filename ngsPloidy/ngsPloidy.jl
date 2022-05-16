@@ -155,7 +155,6 @@ GZip.open(parsed_args["fin"]) do file
 			global allSites += 1
 
 			# calculate genotype likelihoods assuming haploid for pooled samples
-			#haploid = calcAlleleLike(myReads, mySite)
 			haploid = [calcGenoLike(myReads, [i], 1) for i=1:4]
 
 			# order alleles

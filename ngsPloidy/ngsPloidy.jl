@@ -5,8 +5,6 @@ include("../templates.jl")
 include("../functions.jl")
 include("arguments.jl")
 
-# alleles = ['A','C','G','T']
-
 # parsing parameters
 parsed_args = parse_commandline_poly()
 ploidy = parsePloidy(parsed_args["ploidy"])
@@ -157,7 +155,8 @@ GZip.open(parsed_args["fin"]) do file
 			global allSites += 1
 
 			# calculate genotype likelihoods assuming haploid for pooled samples
-			haploid = calcGenoLogLike1(myReads, mySite)
+			#haploid = calcAlleleLike(myReads, mySite)
+			haploid = [calcGenoLike(myReads, [i], 1) for i=1:4]
 
 			# order alleles
 			if parsed_args["keepRef"] <= 0
@@ -173,7 +172,7 @@ GZip.open(parsed_args["fin"]) do file
 
 			# is this biallelic?
 			if parsed_args["thBia"] > -Inf
-				biaLike = calcGenoLogLike1_Bia(myReads, mySite, major, minor, phredScale=parsed_args["phredscale"])
+				biaLike = calcMultiAlleleLike(myReads, mySite, major, minor; minor2=5, phredScale=parsed_args["phredscale"])
 				# if you fix the ref/anc, then the "minor" may have greater likelihood, so:
 				if parsed_args["keepRef"] <= 0
 					lrtBia = 2*(biaLike-haploid[major])
@@ -186,7 +185,7 @@ GZip.open(parsed_args["fin"]) do file
 
 			# is this triallelic?
 			if parsed_args["thTria"] < Inf
-				triaLike = calcGenoLogLike1_Tria(myReads, mySite, major, minor, minor2, phredScale=parsed_args["phredscale"])
+				triaLike = calcMultiAlleleLike(myReads, mySite, major, minor; minor2, phredScale=parsed_args["phredscale"])
 				lrtTria = 2*(triaLike-biaLike)
 			else
 				lrtTria = -Inf

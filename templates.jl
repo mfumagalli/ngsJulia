@@ -1,3 +1,6 @@
+
+global ALLELES = ['A', 'C', 'G', 'T'];
+
 # define the type and hierarchy
 
 mutable struct Reads #mutable added
@@ -36,6 +39,5 @@ Frequency(0,0);
 
 # --------------------------
 
-alleles = ['A', 'C', 'G', 'T'];
 
 

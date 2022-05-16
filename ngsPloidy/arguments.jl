@@ -1,7 +1,7 @@
 
 # Specific functions for ngsPoly
 
-import GZip
+using GZip
 using ArgParse
 using Combinatorics
 

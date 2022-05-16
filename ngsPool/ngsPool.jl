@@ -88,16 +88,16 @@ GZip.open(parsed_args["fin"]) do file
 			allSites += 1
 
 			# calculate genotype likelihoods for all haploid cases
-			haploid=calcGenoLogLike1(myReads, mySite)
+			haploid=calcAlleleLike(myReads, mySite)
 			# We use a maximum likelihood approach to choose the major and minor alleles.
 			(major, minor, minor2, minor3) = sortperm(haploid, rev=true)
 
 			# is this biallelic?
-			biaLike = calcGenoLogLike1_Bia(myReads, mySite, major, minor, phredScale=parsed_args["phredscale"])
+			biaLike = calcMultiAlleleLike(myReads, mySite, major, minor; minor2=5, phredScale=parsed_args["phredscale"])
 			lrtBia = 2*(biaLike-haploid[major])
 
 			# is this triallelic?
-			triaLike = calcGenoLogLike1_Tria(myReads, mySite, major, minor, minor2, phredScale=parsed_args["phredscale"])
+			triaLike = calcMultiAlleleLike(myReads, mySite, major, minor; minor2, phredScale=parsed_args["phredscale"])
 			lrtTria = 2*(triaLike-biaLike)
 
 			#without SNP calling (all sites)

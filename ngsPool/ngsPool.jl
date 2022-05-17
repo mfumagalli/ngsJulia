@@ -5,8 +5,6 @@ include("../templates.jl")
 include("../functions.jl")
 include("arguments.jl")
 
-# alleles = ['A','C','G','T']
-
 # parsing parameters
 parsed_args = parse_commandline_pool()
 println("Parsed args:")
@@ -88,26 +86,34 @@ GZip.open(parsed_args["fin"]) do file
 			allSites += 1
 
 			# calculate genotype likelihoods for all haploid cases
-			haploid=calcAlleleLike(myReads, mySite)
+			haploid = [calcGenoLike(myReads, [i], 1) for i=1:4]
 			# We use a maximum likelihood approach to choose the major and minor alleles.
 			(major, minor, minor2, minor3) = sortperm(haploid, rev=true)
 
 			# is this biallelic?
-			biaLike = calcMultiAlleleLike(myReads, mySite, major, minor; minor2=5, phredScale=parsed_args["phredscale"])
-			lrtBia = 2*(biaLike-haploid[major])
+			if parsed_args["thBia"] > -Inf
+				biaLike = calcAlleleLike(myReads, [major, minor]; phredScale=parsed_args["phredscale"])
+				lrtBia = 2*(biaLike-haploid[major])
+			else
+				lrtBia = Inf
+			end
 
 			# is this triallelic?
-			triaLike = calcMultiAlleleLike(myReads, mySite, major, minor; minor2, phredScale=parsed_args["phredscale"])
-			lrtTria = 2*(triaLike-biaLike)
+			if parsed_args["thTria"] < Inf
+				triaLike = calcAlleleLike(myReads, [major, minor, minor2]; phredScale=parsed_args["phredscale"])
+				lrtTria = 2*(triaLike-biaLike)
+			else
+				lrtTria = -Inf
+	                end
 
 			#without SNP calling (all sites)
 			if parsed_args["nGrids"] > 0 #grid-search
-				freqsMLE = optimFreq_MajorMinor(myReads, major, minor, parsed_args["nGrids"]+1) #as maf=1/nGrid
+				freqsMLE = optimFreq_GS(myReads, [major, minor], parsed_args["nGrids"]+1) #as maf=1/nGrid
 			else #golden section search
-				freqsMLE = optimFreq_MajorMinor_GSS(myReads, major, minor, parsed_args["tol"])
+				freqsMLE = optimFreq(myReads, [major, minor], parsed_args["tol"])
 			end
 
-			lrtSNP = snpPval_MajorMinor(myReads, freqsMLE[1], major, minor)
+			lrtSNP = snpTest(myReads, freqsMLE[1], [major, minor])
 			#       snpPval_MajorMinor(read::Reads, maxlike::Float64, major::Int64, minor::Int64)
 
 			#with SNP calling (only polymorphic sites)
@@ -144,15 +150,14 @@ GZip.open(parsed_args["fin"]) do file
 					# help = "number of samples [>0 ensables saf likelihoods]"
 
 					for i = 0:nSamp
-						safLikes[i+1] = calcFreqLogLike1_MajorMinor(myReads, ref, nonref, i/nSamp, parsed_args["phredscale"])
-						# function calcFreqLogLike1_MajorMinor(read::Reads, major::Int64, minor::Int64, maf::Float64, phredScale::Int64=33)
+						safLikes[i+1] = calcFreqLike(myReads, [ref, nonref], i/nSamp; parsed_args["phredscale"])
 					end
 
 					safLikes = safLikes .- maximum(safLikes)
 					# calculate maximum (and expectation)
 					# freqMax = [((1:length(safLikes))[safLikes .== 0])] .- 1
 					freqMax = findall(iszero, safLikes) .- 1
-					freqMax = freqMax[1] #temperarily(2020/7/5)
+					freqMax = freqMax[1] #temperarily(2020/7/5) # ???
 					 #find the minor allele number (among samples) with maximum likelihood
 
 					if freqMax > nSamp/2

@@ -1,5 +1,5 @@
 
-function calcAlleleLike(read::Reads, allele::Array{Int64}, phredScale::Int64=33)
+function calcAlleleLike(read::Reads, allele::Array{Int64}; phredScale::Int64=33)
 
         like = 0.0
 
@@ -16,7 +16,7 @@ function calcAlleleLike(read::Reads, allele::Array{Int64}, phredScale::Int64=33)
         return like
 end
 
-function calcGenoLike(read::Reads, allele::Array{Int64}, ploidy::Int64, phredScale::Int64=33)
+function calcGenoLike(read::Reads, allele::Array{Int64}, ploidy::Int64; phredScale::Int64=33)
 
         likes = zeros(ploidy+1)
         iter = 0
@@ -133,20 +133,20 @@ end
 
 # calculate likelihood (in ln format) for a given minor allele frequency
  # (in case of haploids) from major and minor
-function calcFreqLogLike1_MajorMinor(read::Reads, major::Int64, minor::Int64, maf::Float64, phredScale::Int64=33)
+function calcFreqLike(read::Reads, allele::Array{Int64}, maf::Float64; phredScale::Int64=33)
 	#in calcFreqLogLike1_MajorMinor() maf input set to 0.0
 
 	like = 0
-	alleles = ['A','C','G','T']
+	
 	freqs = [1-maf, maf] #major, minor allele frequency
 
 	for i = 1:length(read.base)
 		bP::Float64 = 10^(  (phredScale - Int64(read.baseQuality[i])  )/10)
 		sublike = 0.0
 		iter = 0
-		for j = (major,minor)
+		for j = allele
 			iter += 1
-			if alleles[j]==read.base[i]
+			if ALLELES[j]==read.base[i]
 				sublike += (1 - bP)*freqs[iter]
 			else
 				sublike += (bP/3)*freqs[iter]
@@ -161,7 +161,7 @@ end
 
 #suspected to be an unfinished function..(2020/5/27)
 # grid-search optimization for allele frequencies, only for Major and Minor alleles
-function optimFreq_MajorMinor(read::Reads, major::Int64, minor::Int64, nGrids::Int64)
+function optimFreq_GS(read::Reads, allele::Array{Int64}, nGrids::Int64)
 
 	maxlike = -Inf
 	# MLEmaf = Float64 #what's this for? collect? array or a number?
@@ -178,7 +178,7 @@ function optimFreq_MajorMinor(read::Reads, major::Int64, minor::Int64, nGrids::I
 
 		# maf = Float64(fGrid[i])
 		maf = fGrid[i] #as already float64
-		like=calcFreqLogLike1_MajorMinor(read, major, minor, maf)
+		like=calcFreqLike(read, allele, maf)
 		if like > maxlike #not filtering sites at all
 			maxlike=like
 			MLEmaf=maf #intending for the last grid num?
@@ -195,7 +195,7 @@ end
 
 # golden section search optimization for allele frequencies
 # only for Major and Minor alleles
-function optimFreq_MajorMinor_GSS(read::Reads, major::Int64, minor::Int64, tol::Float64) #tol: tolerance
+function optimFreq(read::Reads, allele::Array{Int64}, tol::Float64) #tol: tolerance
 
 	maxlike = -Inf
 	MLEmaf = Float64
@@ -211,8 +211,8 @@ function optimFreq_MajorMinor_GSS(read::Reads, major::Int64, minor::Int64, tol::
 
 	while abs(c-d) > tol
 
-		fc = calcFreqLogLike1_MajorMinor(read, major, minor, c) #c and d as maf
-		fd = calcFreqLogLike1_MajorMinor(read, major, minor, d)
+		fc = calcFreqLike(read, allele, c) #c and d as maf
+		fd = calcFreqLike(read, allele, d)
 
 		if fc > fd # to find the maximum, otherwise use < (Matteo) ??
 			b = d
@@ -233,18 +233,18 @@ function optimFreq_MajorMinor_GSS(read::Reads, major::Int64, minor::Int64, tol::
 		MLEmaf = 0.0
 	end
 
-	maxlike = calcFreqLogLike1_MajorMinor(read, major, minor, MLEmaf)
+	maxlike = calcFreqLike(read, allele, MLEmaf)
 
 	return (maxlike, MLEmaf)
 
 end
 
 # LRT(likelihood ratio test statistic) for snp calling
-function snpPval_MajorMinor(read::Reads, maxlike::Float64, major::Int64, minor::Int64)
+function snpTest(read::Reads, maxlike::Float64, allele::Array{Int64})
 
 	maf = 0.0
-	like_H0 = maximum( [calcFreqLogLike1_MajorMinor(read, major, minor, maf);
-	calcFreqLogLike1_MajorMinor(read, minor, major, maf)] )
+	like_H0 = maximum( [calcFreqLike(read, [major, minor], maf)
+	calcFreqLike(read, [minor, major], maf)] )
 	# global and sample major could be differ
 
 	lrtSNP =  2 * (maxlike - like_H0 ) #-2(ln(p_H0))-ln(parameter space)) #LRT statistic
@@ -252,3 +252,6 @@ function snpPval_MajorMinor(read::Reads, maxlike::Float64, major::Int64, minor::
 
 	return lrtSNP
 end
+
+
+

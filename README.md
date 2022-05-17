@@ -68,26 +68,26 @@ We can visualise the nucleotide likelihoods:
 ```
 using Combinatorics
 
-nucleo_likes = calcGenoLogLike1(myReads, mySite)
+nucleoLikes = [calcGenoLike(myReads, [i], 1) for i=1:4]
 ```
 which in turn can be used to estimate major and minor alleles:
 ```
-(major, minor, minor2, minor3) = sortperm(nucleo_likes, rev=true);
-println("Major allele is ", alleles[major], " and minor allele is ", alleles[minor])
+(major, minor, minor2, minor3) = sortperm(nucleoLikes, rev=true);
+println("Major allele is ", ALLELES[major], " and minor allele is ", ALLELES[minor])
 ```
 
 From these variables, it's easy to visualise the genotype likelihoods of a triploid for said alleles 
 ```
-geno_likes = calcGenoLogLike3_MajorMinor(myReads, mySite, major, minor)
+genoLikes = calcGenoLike(myReads, [major, minor], 3)
 ```
 where the genotypes in output are ordered as "(major,major,major), (major, major, minor), (major, minor, minor), (minor, minor, minor)", as that the most likely genotype is
 ```
-findmax(geno_likes)[2] # (major, major, minor), AAG
+findmax(genoLikes)[2] # (major, major, minor), AAG
 ```
 
 If we wish to set up a custom algorithm for genotype calling, then we can for instance calculate the difference in log likelihoods between the most likely and second most likely genotype as a weight of evidence
 ```
-diff(geno_likes[sortperm(geno_likes, rev=true)[[2,1]]])
+diff(genoLikes[sortperm(genoLikes, rev=true)[[2,1]]])
 ```
 
 In general, `ngsJulia` provides templates and functions useful for:

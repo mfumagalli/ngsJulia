@@ -171,7 +171,7 @@ GZip.open(parsed_args["fin"]) do file
 
 			# is this biallelic?
 			if parsed_args["thBia"] > -Inf
-				biaLike = calcMultiAlleleLike(myReads, mySite, major, minor; minor2=5, phredScale=parsed_args["phredscale"])
+				biaLike = calcAlleleLike(myReads, [major, minor]; phredScale=parsed_args["phredscale"])
 				# if you fix the ref/anc, then the "minor" may have greater likelihood, so:
 				if parsed_args["keepRef"] <= 0
 					lrtBia = 2*(biaLike-haploid[major])
@@ -184,7 +184,7 @@ GZip.open(parsed_args["fin"]) do file
 
 			# is this triallelic?
 			if parsed_args["thTria"] < Inf
-				triaLike = calcMultiAlleleLike(myReads, mySite, major, minor; minor2, phredScale=parsed_args["phredscale"])
+				triaLike = calcAlleleLike(myReads, [major, minor, minor2]; phredScale=parsed_args["phredscale"])
 				lrtTria = 2*(triaLike-biaLike)
 			else
 				lrtTria = -Inf
@@ -192,11 +192,11 @@ GZip.open(parsed_args["fin"]) do file
 
 			# is it polymorphic?
 			if parsed_args["nGrids"] > 0
-				freqsMLE = optimFreq_MajorMinor(myReads, major, minor, parsed_args["nGrids"]+1)
+				freqsMLE = optimFreq_GS(myReads, [major, minor], parsed_args["nGrids"]+1)
 			else
-				freqsMLE = optimFreq_MajorMinor_GSS(myReads, major, minor, parsed_args["tol"])
+				freqsMLE = optimFreq(myReads, [major, minor], parsed_args["tol"])
 			end
-			lrtSnp = snpPval_MajorMinor(myReads, freqsMLE[1], major, minor)
+			lrtSnp = snpTest(myReads, freqsMLE[1], [major, minor])
 
 			# SNP calling
 			if (lrtSnp>parsed_args["thSnp"] && lrtBia>parsed_args["thBia"] && lrtTria<parsed_args["thTria"] && freqsMLE[2]>=parsed_args["minMaf"] && (1-freqsMLE[2])>=parsed_args["minMaf"]  )
@@ -257,9 +257,9 @@ GZip.open(parsed_args["fin"]) do file
 
 						# haploid genotype likelihoods
 						if 1 in ploidy
-							haploid = calcGenoLogLikeN_MajorMinor(1, myReads, mySite, major, minor)
+							haploid = calcGenoLike(myReads, [major, minor], 1)
 							if maximum(pANC) < 1
-								haploid_rev = calcGenoLogLikeN_MajorMinor(1, myReads, mySite, minor, major)
+								haploid_rev = calcGenoLike(myReads, [minor, major], 1)
 							else
 								haploid_rev = zeros(length(haploid))
 							end
@@ -267,9 +267,9 @@ GZip.open(parsed_args["fin"]) do file
 
 						# diploid genotype likelihoods
 						if 2 in ploidy
-							diploid = calcGenoLogLikeN_MajorMinor(2, myReads, mySite, major, minor)
+							diploid = calcGenoLike(myReads, [major, minor], 2)
 							if maximum(pANC) < 1
-								diploid_rev = calcGenoLogLikeN_MajorMinor(2, myReads, mySite, minor, major)
+								diploid_rev = calcGenoLike(myReads, [minor, major], 2)
 							else
 								diploid_rev = zeros(length(diploid))
 							end
@@ -277,9 +277,9 @@ GZip.open(parsed_args["fin"]) do file
 
 						# triploid genotype likelihoods
 						if 3 in ploidy
-							triploid = calcGenoLogLikeN_MajorMinor(3, myReads, mySite, major, minor)
+							triploid = calcGenoLike(myReads, [major, minor], 3)
 							if maximum(pANC) < 1
-								triploid_rev = calcGenoLogLikeN_MajorMinor(3, myReads, mySite, minor, major)
+								triploid_rev = calcGenoLike(myReads, [minor, major], 3)
 							else
 								triploid_rev = zeros(length(triploid))
 							end
@@ -287,9 +287,9 @@ GZip.open(parsed_args["fin"]) do file
 
 						# tetraploid genotype likelihoods
 						if 4 in ploidy
-							tetraploid = calcGenoLogLikeN_MajorMinor(4, myReads, mySite, major, minor)
+							tetraploid = calcGenoLike(myReads, [major, minor], 4)
 							if maximum(pANC) < 1
-								tetraploid_rev = calcGenoLogLikeN_MajorMinor(4, myReads, mySite, minor, major)
+								tetraploid_rev = calcGenoLike(myReads, [minor, major], 4)
 							else
 								tetraploid_rev = zeros(length(tetraploid))
 							end
@@ -297,9 +297,9 @@ GZip.open(parsed_args["fin"]) do file
 
 						# pentaploid genotype likelihoods
 						if 5 in ploidy
-							pentaploid = calcGenoLogLikeN_MajorMinor(5, myReads, mySite, major, minor)
+							pentaploid = calcGenoLike(myReads, [major, minor], 5)
 							if maximum(pANC) < 1
-								pentaploid_rev = calcGenoLogLikeN_MajorMinor(5, myReads, mySite, minor, major)
+								pentaploid_rev = calcGenoLike(myReads, [minor, major], 5)
 							else
 								pentaploid_rev = zeros(length(pentaploid))
 							end
@@ -307,9 +307,9 @@ GZip.open(parsed_args["fin"]) do file
 
 						# hexaploid genotype likelihoods
 						if 6 in ploidy
-							hexaploid = calcGenoLogLikeN_MajorMinor(6, myReads, mySite, major, minor)
+							hexaploid = calcGenoLike(myReads, [major, minor], 6)
 							if maximum(pANC) < 1
-								hexaploid_rev = calcGenoLogLikeN_MajorMinor(6, myReads, mySite, minor, major)
+								hexaploid_rev = calcGenoLike(myReads, [minor, major], 6)
 							else
 								hexaploid_rev = zeros(length(hexaploid))
 							end
@@ -317,9 +317,9 @@ GZip.open(parsed_args["fin"]) do file
 
 						# heptaploid genotype likelihoods
                                                 if 7 in ploidy
-                                                        heptaploid = calcGenoLogLikeN_MajorMinor(7, myReads, mySite, major, minor)
+                                                        heptaploid = calcGenoLike(myReads, [major, minor], 7)
                                                         if maximum(pANC) < 1
-                                                                heptaploid_rev = calcGenoLogLikeN_MajorMinor(7, myReads, mySite, minor, major)
+                                                                heptaploid_rev = calcGenoLike(myReads, [minor, major], 7)
                                                         else
                                                                 heptaploid_rev = zeros(length(heptaploid))
                                                         end
@@ -327,9 +327,9 @@ GZip.open(parsed_args["fin"]) do file
 					
 						# octaploid genotype likelihoods
                                                 if 8 in ploidy
-                                                        octaploid = calcGenoLogLikeN_MajorMinor(8, myReads, mySite, major, minor)
+                                                        octaploid = calcGenoLike(myReads, [major, minor], 8)
                                                         if maximum(pANC) < 1
-                                                                octaploid_rev = calcGenoLogLikeN_MajorMinor(8, myReads, mySite, minor, major)
+                                                                octaploid_rev = calcGenoLike(myReads, [minor, major], 8)
                                                         else
                                                                 octaploid_rev = zeros(length(octaploid))
                                                         end
@@ -341,6 +341,7 @@ GZip.open(parsed_args["fin"]) do file
 						for p in 1:length(ploidy)
 
 							# which ploidy
+							# these will be replaced by binomial expansion
 							genoLikes = genoLikes_rev = Array{Float64}
 							if ploidy[p] == 1
 								genoLikes = haploid

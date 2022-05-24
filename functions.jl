@@ -253,5 +253,24 @@ function snpTest(read::Reads, maxlike::Float64, allele::Array{Int64})
 	return lrtSNP
 end
 
+function binomialExpansion(ploidy::Array{Int64}, freq::Float64)
+
+	genopriors = []
+
+	for ploidy1 in ploidy
+  		genopriors_1ploidy = []
+  		ploidy_ = ploidy1
+  		while ploidy_ >= 0
+      			push!(genopriors_1ploidy, ( ((1-freq)^ploidy_) * (freq^(ploidy1-ploidy_)) * binomial(ploidy1, ploidy_) ) )
+      			ploidy_ += -1
+  		end
+  		push!(genopriors, genopriors_1ploidy)
+	end
+
+	return genopriors
+
+end
+
+
 
 

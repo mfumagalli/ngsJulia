@@ -271,6 +271,24 @@ function binomialExpansion(ploidy::Array{Int64}, freq::Float64)
 
 end
 
+# this is incomplete
+#function writePars(ksfs::Float64, ne:Int64, snpcall::Boolean, panc::Float64)
+
+#	# all polymoprhic in the population!
+#	ee = (1/(1:(ne-1))^(1/ksfs)) 
+#	ee=ee/sum(ee)
+#	pder = (0, ee, 0)
+
+#	# this is the expected derived allele frequency
+#	q = weighted.mean(seq(0,Ne,1), pder)/Ne # change!
+#	p = 1 - q
+
+#	# if panc=0.5 then it is folded
+#	if (panc<0) panc=sum(pder[1:(floor(Ne/2)+1)])
+
+#	return 0
+
+#end
 
 
 

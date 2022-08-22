@@ -10,16 +10,16 @@ parsed_args = parse_commandline_poly()
 ploidy = parsePloidy(parsed_args["ploidy"])
 
 # at the moment only 1-8 ploidies are accepted
-if ploidy != [1,2,3,4,5,6,7,8]
-	println("Sorry, the option --ploidy has to be fixed to 1-8 by the user at the moment.")
-	exit(1)
-end
+#if ploidy != [1,2,3,4,5,6,7,8]
+#	println("Sorry, the option --ploidy has to be fixed to 1-8 by the user at the moment.")
+#	exit(1)
+#end
 
-MAXPLOIDY = 8
-if maximum(ploidy) > MAXPLOIDY
-	println("Error: tested ploidy must be less than", MAXPLOIDY+1)
-	exit(1)
-end
+#MAXPLOIDY = 8
+#if maximum(ploidy) > MAXPLOIDY
+#	println("Error: tested ploidy must be less than", MAXPLOIDY+1)
+#	exit(1)
+#end
 
 # check that if you given genotype priors, then you assume that reference in mpileup is ancestral
 if parsed_args["fpars"] != "NULL" && parsed_args["keepRef"] <= 0
@@ -339,56 +339,28 @@ GZip.open(parsed_args["fin"]) do file
 						freq =  freqsMLE[2]
 
 						for p in 1:length(ploidy)
+							
+							# genotype likelihoods
+							genoLikes = calcGenoLike(myReads, [major, minor], ploidy[p])
+							# reversed geno likes in case of unknown polarisation
+							if maximum(pANC) < 1
+                                                                genoLikes_rev = calcGenoLike(myReads, [minor, major], ploidy[p])
+                                                        else
+                                                                genoLikes_rev = zeros(length(genoLikes))
+                                                        end
 
-							# which ploidy
-							# these will be replaced by binomial expansion
-							genoLikes = genoLikes_rev = Array{Float64}
-							if ploidy[p] == 1
-								genoLikes = haploid
-								genoLikes_rev = haploid_rev
-								genoPriors = (1-freq,freq)
-							elseif ploidy[p] == 2
-								genoLikes = diploid
-								genoLikes_rev = diploid_rev
-								genoPriors = ( (1-freq)^2, 2*(1-freq)*freq, freq^2 )
-							elseif ploidy[p] == 3
-								genoLikes = triploid
-								genoLikes_rev = triploid_rev
-								genoPriors = ( (1-freq)^3, 3*(1-freq)^2*freq, 3*(1-freq)*freq^2, freq^3 )
-							elseif ploidy[p] == 4
-								genoLikes = tetraploid
-								genoLikes_rev = tetraploid_rev
-								genoPriors = ( (1-freq)^4, 4*(1-freq)^3*freq, 6*(1-freq)^2*freq^2, 4*(1-freq)*freq^3, freq^4 )
-							elseif ploidy[p] == 5
-								genoLikes = pentaploid
-								genoLikes_rev = pentaploid_rev
-								genoPriors = ( (1-freq)^5, 5*(1-freq)^4*freq, 10*(1-freq)^3*freq^2, 10*(1-freq)^2*freq^3, 5*(1-freq)*freq^4, freq^5 )
-							elseif ploidy[p] == 6
-								genoLikes = hexaploid
-								genoLikes_rev = hexaploid_rev
-								genoPriors = ( (1-freq)^6, 6*(1-freq)^5*freq, 15*(1-freq)^4*freq^2, 20*(1-freq)^3*freq^3, 15*(1-freq)^2*freq^4, 6*(1-freq)*freq^5, freq^6 )
-							elseif ploidy[p] == 7
-                                                                genoLikes = heptaploid
-                                                                genoLikes_rev = heptaploid_rev
-                                                                genoPriors = ( (1-freq)^7, 7*(1-freq)^6*freq, 21*(1-freq)^5*freq^2, 35*(1-freq)^4*freq^3, 35*(1-freq)^3*freq^4, 21*(1-freq)^2*freq^5, 7*(1-freq)*freq^6, freq^7 )
-
-							elseif ploidy[p] == 8
-                                                        	genoLikes = octaploid
-                                                      		genoLikes_rev = octaploid_rev
-                                                     		genoPriors = ( (1-freq)^8, 8*(1-freq)^7*freq, 28*(1-freq)^6*freq^2, 56*(1-freq)^5*freq^3, 70*(1-freq)^4*freq^4, 56*(1-freq)^3*freq^5, 28*(1-freq)^2*freq^6, 8*(1-freq)*freq^7, freq^8 )
-
-
-							end # match ploidy
-
-							# change prior if uniform is set
+							# genotype priors
 							if parsed_args["unif"]==1
-								genoPriors = ones(Float64, ploidy[p]+1) / (ploidy[p]+1)
+                                                                genoPriors = ones(Float64, ploidy[p]+1) / (ploidy[p]+1)
+                                                        else 
+								genoPriors = binomialExpansion(ploidy[p], freq) 
 							end
 
 							# calculate all probabilities
 							tempProbs = []
 							for z = 1:length(genoLikes)
 								if parsed_args["fpars"] != "NULL"
+									# these prior files are not at arbitrary length at the moment!!!
 									tempProbs = [tempProbs; exp(genoLikes[z]) * priors[p,z] * pANC[1]; exp(genoLikes_rev[z]) * priors[p,z] * pANC[2] ]
 	              else
 									tempProbs = [tempProbs; exp(genoLikes[z]) * genoPriors[z] ]
@@ -410,6 +382,7 @@ GZip.open(parsed_args["fin"]) do file
 						end
 	
 						# write genotype likelihoods for each sample, if set
+						# this printing has to change!
 						if parsed_args["fglikes"]!="NULL"
 							write(fglikes, join( (mySite.chrom, mySite.position, n, mySite.reference, sampleDepth, alleles[major], alleles[minor], join(haploid, "\t"), join(diploid, "\t"), join(triploid, "\t"), join(tetraploid, "\t"), join(pentaploid, "\t"), join(hexaploid, "\t"), join(heptaploid, "\t"), join(octaploid, "\t") ), "\t"), "\n")
 						end

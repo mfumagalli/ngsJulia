@@ -7,7 +7,7 @@ It provides additional scripts for estimators of the site frequency spectrum (SF
 To showcase its use, this tutorial will simulate some pooled sequencing data and demonstrate the various options and possible analyses implemented in `ngsPool`.
 Before starting, please specify paths to both Julia language and ngsJulia (yours could be different):
 ```
-JULIA=~/Software/julia-1.6.1/bin/julia
+JULIA=~/Software/julia-1.6.6/bin/julia
 NGSJULIA=~/Software/ngsJulia
 ```
 

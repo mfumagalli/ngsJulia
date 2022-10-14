@@ -4,20 +4,20 @@ Inference of ploidy from short-read NGS data using `ngsJulia.`
 `ngsPloidy` takes gzipped mpileup files as input and returns several metrics of per-sample ploidy assignment. 
 It calculates the likelihood of NGS given each tested ploidy, with genotype probabilities calculated from their likelihoods and expected (or estimated) allele frequencies.
 `ngsPloidy` outputs the most likely vector of marginal ploidies, as well as the likelihood of all samples having the same ploidy.
-The package also tests for aneuploidy within the sample, i.e. it provides statistical support for the ploidy being different among all tested samples.
+The package also tests for multiploidy within the sample, i.e. it provides statistical support for the ploidy being different among all tested samples.
 `ngsPloidy` supports data filtering based on quality and depth values.
 
 ## Initialisation
 
 Let's initialise paths to Julia language and `ngsJulia` (yours could be different):
 ```
-JULIA=~/Software/julia-1.6.1/bin/julia
+JULIA=~/Software/julia-1.6.6/bin/julia
 NGSJULIA=~/Software/ngsJulia
 ```
 
 In case of limited sample size, firstly we need a create a file containing genotype probabilities. 
 We also need to provide the probability of the major allele being ancestral, as this information will be used in case of limited sample size.
-These probability files can be generated using the following R script:
+These probability files can be generated using the following R script (which requires `getopt` package):
 ```
 Rscript $NGSJULIA/ngsPloidy/writePars.R --help
 ```
@@ -62,7 +62,7 @@ outputs in the first line the probability of major allele being ancestral and de
 ## Simulations
 
 We can simulate sequencing data in mpileup format by specifying the ploidy of each individual and other parameters of the sequencing experiment and species.
-We can use the script provided:
+We can use the script provided (which requires `getopt` package):
 ```
 Rscript $NGSJULIA/simulMpileup.R --help
 ```
@@ -86,11 +86,20 @@ The true data is contained in this file:
 ```
 less -S test.A.txt
 ```
-while the simulated sequencing data is accessible with:
+where each column indicates:
+* identifier of contig (named after the --copy option)
+* position
+* reference allele (set to A)
+* alternate allele (set to C)
+* population allele frequency
+* genotype for each sample
+* sampled allele frequency
+
+The simulated observed sequencing data is accessible with:
 ```
-# observed sequencing data
 less -S test.A.mpileup.gz
 ```
+and it is formatted as standard [mpileup](http://www.htslib.org/doc/samtools-mpileup.html) file.
 
 If we assume we have enough sample size, we can use the estimated allele frequency to calculate genotype probabilities at each site.
 In this case, we can simply infer ploidy levels with:
@@ -105,18 +114,18 @@ cat test.A.out
 Results show:
 * nr of analysed sites: vector of sites that passed filtering for each sample
 * log-likelihoods of per-sample ploidies: a matrix of nr_sample X nr_ploidies with the log-likelihood of each sample having a certain ploidy (rows are separated by ;)
-* #MLE vector of ploidies: the vector of individual maximum likelihood estimates of ploidy for each sample
-* #log-likelikehood of MLE vector of ploidies: the log-likelihood of the above vector of estimated ploidies
-* #LRT of aneuploidy: difference between MLE vector of ploidies and the log-likliehood of all samples having the same ploidy, calculated for all tested ploidies
+* MLE vector of ploidies: the vector of individual maximum likelihood estimates of ploidy for each sample
+* log-likelikehood of MLE vector of ploidies: the log-likelihood of the above vector of estimated ploidies
+* LRT of multiploidy: difference between MLE vector of ploidies and the log-likliehood of all samples having the same ploidy, calculated for all tested ploidies
 
 Note that by default all ploidy levels from 1 to 8 are tested, and therefore for each sample 8 likelihoods are calculated and reported.
 To extract the interpretation of these results, we can run the following script: 
 ```
 Rscript $NGSJULIA/ngsPloidy/ploidyLRT.R test.A.out
 ```
-which outputs the most likely ploidy with its statistical support and the result for the test of aneuploidy.
+which outputs the most likely ploidy with its statistical support and the result for the test of multiploidy.
 In this example, we can see that the vector of estimated ploidy levels is equal to the simulated one.
-We further observe that the LRT value for aneuploidy are high, further suggesting variation in ploidy among samples.
+We further observe that the LRT value for multiploidy are high, further suggesting variation in ploidy among samples.
 
 
 ### Case B: 2 haploids, 2 diploids, 2 triploids, 2 tetraploids, 2 pentaploids
@@ -134,7 +143,7 @@ $JULIA $NGSJULIA/ngsPloidy/ngsPloidy.jl --fin test.B.mpileup.gz --fpars test.par
 
 Rscript $NGSJULIA/ngsPloidy/ploidyLRT.R test.B.out
 ```
-The option `--keepRef` forces the reference allele to be one of the two considered alleles and it is mandatory with `--fpars``.
+The option `--keepRef` forces the reference allele to be one of the two considered alleles and it is mandatory with `--fpars`.
 
 ----------------------------------------
 
@@ -192,7 +201,7 @@ $JULIA $NGSJULIA/ngsPloidy/ngsPloidy.jl --fin test.B.mpileup.gz --unif 1 --nSamp
 
 ---------------------------
 
-Finally, we can even call genotypes (`--callGeno`) and consider their likelihoods only in the ploidy estimation with:
+Finally, we can even infer ploidy by assigning genotypes (`--callGeno`) and consider their likelihoods only in the ploidy estimation with:
 ```
 $JULIA $NGSJULIA/ngsPloidy/ngsPloidy.jl --fin test.B.mpileup.gz --unif 1 --callGeno 1 --nSamples 10 --minSamples 10
 ```
@@ -231,7 +240,7 @@ $JULIA $NGSJULIA/ngsPloidy/ngsPloidy.jl --fin test.D.mpileup.gz --fpars test.fol
 
 Rscript $NGSJULIA/ngsPloidy/ploidyLRT.R test.D.out
 ```
-From the results, aneuploidy is statistically supported.
+From the results, multiploidy is statistically supported.
 
 
 ### Case E: 1 tetraploid with Ne=1e6, experiencing population growth with SNP calling
@@ -249,7 +258,7 @@ The former can be obtained with:
 ```
 Rscript $NGSJULIA/ngsPloidy/writePars.R -k 0.9 -n 100000 -p 1 -s > test.E.pars
 ```
-The latter is in X^2 score value where, for instance, 6.64 is equivalent to a p-value of 0.01.
+The latter is in chi-square score value where, for instance, 6.64 corresponds to a p-value of 0.01.
 
 ```
 $JULIA $NGSJULIA/ngsPloidy/ngsPloidy.jl --fin test.E.mpileup.gz --fpars test.E.pars --keepRef 1 --nSamples 1 --thSnp 6.64 > test.E.out

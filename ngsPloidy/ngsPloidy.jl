@@ -109,7 +109,7 @@ GZip.open(parsed_args["fin"]) do file
 
 		mySite = Site(l[1], parse(Int64, l[2]), uppercase(Char(l[3][1])))
 
-		# pooled reads for first level filtering (global depth) and estimation of minor/major alleles and allele frequencies
+		# pooled reads for first level filtering (global depth) and estimation of minor/major ALLELES and allele frequencies
 		myReads = Reads("","")
 		for n = 1:parsed_args["nSamples"]
 			subReads = Reads(chomp(l[(n-1)*3+5]), chomp(l[(n-1)*3+6]))
@@ -157,21 +157,21 @@ GZip.open(parsed_args["fin"]) do file
 			# calculate genotype likelihoods assuming haploid for pooled samples
 			haploid = [calcGenoLike(myReads, [i], 1) for i=1:4]
 
-			# order alleles
+			# order ALLELES
 			if parsed_args["keepRef"] <= 0
 				# calculate major and minor
 				(major, minor, minor2, minor3) = sortperm(haploid, rev=true)
 			else
 				# reference is ancestral, set as major
 				tmp_haploid = haploid
-			  	tmp_haploid[findmax(mySite.reference .== alleles)[2]] = 0 # set it max
+			  	tmp_haploid[findmax(mySite.reference .== ALLELES)[2]] = 0 # set it max
 				(major, minor, minor2, minor3) = sortperm(tmp_haploid, rev=true)
 				tmp_haploid = 0
 			end
 
 			# is this biallelic?
-			if parsed_args["thBia"] > -Inf
-				biaLike = calcAlleleLike(myReads, [major, minor]; phredScale=parsed_args["phredscale"])
+			if parsed_args["lrtBia"] > -Inf
+				biaLike = calcAlleleLike(myReads, [major, minor], phredScale=parsed_args["phredscale"])
 				# if you fix the ref/anc, then the "minor" may have greater likelihood, so:
 				if parsed_args["keepRef"] <= 0
 					lrtBia = 2*(biaLike-haploid[major])
@@ -183,8 +183,8 @@ GZip.open(parsed_args["fin"]) do file
 			end
 
 			# is this triallelic?
-			if parsed_args["thTria"] < Inf
-				triaLike = calcAlleleLike(myReads, [major, minor, minor2]; phredScale=parsed_args["phredscale"])
+			if parsed_args["lrtTria"] < Inf
+				triaLike = calcAlleleLike(myReads, [major, minor, minor2], phredScale=parsed_args["phredscale"])
 				lrtTria = 2*(triaLike-biaLike)
 			else
 				lrtTria = -Inf
@@ -199,7 +199,7 @@ GZip.open(parsed_args["fin"]) do file
 			lrtSnp = snpTest(myReads, freqsMLE[1], [major, minor])
 
 			# SNP calling
-			if (lrtSnp>parsed_args["thSnp"] && lrtBia>parsed_args["thBia"] && lrtTria<parsed_args["thTria"] && freqsMLE[2]>=parsed_args["minMaf"] && (1-freqsMLE[2])>=parsed_args["minMaf"]  )
+			if (lrtSnp>parsed_args["lrtSnp"] && lrtBia>parsed_args["lrtBia"] && lrtTria<parsed_args["lrtTria"] && freqsMLE[2]>=parsed_args["minMaf"] && (1-freqsMLE[2])>=parsed_args["minMaf"]  )
 
 				# initialise iterator to check that all (or the required number of) samples pass filtering
 				samplesPassed = 0
@@ -353,7 +353,7 @@ GZip.open(parsed_args["fin"]) do file
 							if parsed_args["unif"]==1
                                                                 genoPriors = ones(Float64, ploidy[p]+1) / (ploidy[p]+1)
                                                         else 
-								genoPriors = binomialExpansion(ploidy[p], freq) 
+								genoPriors = binomialExpansion([ploidy[p]], freq)[1] 
 							end
 
 							# calculate all probabilities
@@ -384,7 +384,7 @@ GZip.open(parsed_args["fin"]) do file
 						# write genotype likelihoods for each sample, if set
 						# this printing has to change!
 						if parsed_args["fglikes"]!="NULL"
-							write(fglikes, join( (mySite.chrom, mySite.position, n, mySite.reference, sampleDepth, alleles[major], alleles[minor], join(haploid, "\t"), join(diploid, "\t"), join(triploid, "\t"), join(tetraploid, "\t"), join(pentaploid, "\t"), join(hexaploid, "\t"), join(heptaploid, "\t"), join(octaploid, "\t") ), "\t"), "\n")
+							write(fglikes, join( (mySite.chrom, mySite.position, n, mySite.reference, sampleDepth, ALLELES[major], ALLELES[minor], join(haploid, "\t"), join(diploid, "\t"), join(triploid, "\t"), join(tetraploid, "\t"), join(pentaploid, "\t"), join(hexaploid, "\t"), join(heptaploid, "\t"), join(octaploid, "\t") ), "\t"), "\n")
 						end
 
 					else # if not enough samples
@@ -414,9 +414,9 @@ GZip.open(parsed_args["fin"]) do file
 
 					if parsed_args["fout"]!="NULL"
 						if parsed_args["nSamples"] > 1
-							write(fout, join( (mySite.chrom, mySite.position, mySite.reference, globalDepth, alleles[major], alleles[minor], lrtSnp, lrtBia, lrtTria, freqsMLE[2]), "\t"), "\n")
+							write(fout, join( (mySite.chrom, mySite.position, mySite.reference, globalDepth, ALLELES[major], ALLELES[minor], lrtSnp, lrtBia, lrtTria, freqsMLE[2]), "\t"), "\n")
 						else
-							write(fout, join( (mySite.chrom, mySite.position, mySite.reference, globalDepth, alleles[major], alleles[minor], lrtSnp, lrtBia, lrtTria, freqsMLE[2], log.(polySite[1]), log.(polySite[2]), log.(polySite[3]), log.(polySite[4]), log.(polySite[5]), log.(polySite[6]), log.(polySite[7]), log.(polySite[8])  ), "\t"), "\n")
+							write(fout, join( (mySite.chrom, mySite.position, mySite.reference, globalDepth, ALLELES[major], ALLELES[minor], lrtSnp, lrtBia, lrtTria, freqsMLE[2], log.(polySite[1]), log.(polySite[2]), log.(polySite[3]), log.(polySite[4]), log.(polySite[5]), log.(polySite[6]), log.(polySite[7]), log.(polySite[8])  ), "\t"), "\n")
 						end
 
 					end

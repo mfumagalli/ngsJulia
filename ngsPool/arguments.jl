@@ -3,6 +3,7 @@
 
 using GZip
 using ArgParse
+using Combinatorics
 
 # http://argparsejl.readthedocs.io/en/latest/argparse.html
 function parse_commandline_pool()

@@ -28,7 +28,16 @@ and explore the files generated with:
 ```
 ls test.*
 ```
-The file `test.txt` contains the true genotypes while `test.mpileup.gz` is a gzipped [mpileup](http://www.htslib.org/doc/samtools-mpileup.html) file containing information on sequencing data 
+The file `test.txt` contains the true genotypes while `test.mpileup.gz` is a gzipped [mpileup](http://www.htslib.org/doc/samtools-mpileup.html) file containing information on sequencing data.
+Specifically, columns in `text.txt` contain:
+* contig identifier (set to the value of `--copy`)
+* position
+* reference allele (set to A)
+* alternate allele (set to C)
+* population allele frequency
+* genotypes
+* sample allele frequency
+
 	
 ## Estimate allele frequencies with SNP calling and unknown sample size
 
@@ -42,7 +51,7 @@ Several options for data filtering are available.
 Let's understand its usage with several examples.
 
 In many cases, the sample size is unknown. `ngsPool` provides a possibiity to obtain a maximum likelihood estimation (MLE) of the minor allele frequency under these circumstances.
-using the simulated data set, we can obtain per-site MLE of allele frequencies with:
+Using the simulated data set, we can obtain per-site MLE of allele frequencies with:
 ```
 $JULIA $NGSJULIA/ngsPool/ngsPool.jl --fin test.mpileup.gz --fout test.out.gz --lrtSnp 6.64
 ```

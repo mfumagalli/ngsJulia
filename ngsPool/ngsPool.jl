@@ -52,7 +52,7 @@ GZip.open(parsed_args["fin"]) do file
 	        # baseQuality::AbstractString
 
 		(bases, indexDelN) = convertSyms(myReads, mySite)#translate of reads bases
-		myReads = Reads(bases, myReads.baseQuality);
+		myReads = Reads(bases, myReads.baseQuality)
 		# if there is a deleted base or a N, the base is marked as X
 		 # and will be filtered out in the next stage
 
@@ -65,7 +65,7 @@ GZip.open(parsed_args["fin"]) do file
 
 		# filter by base quality
 		if error == 0
-			newReads = filterReads(myReads; phredScale=parsed_args["phredscale"], minBaseQuality=parsed_args["minQ"])
+			newReads = filterReads(myReads, phredScale=parsed_args["phredscale"], minBaseQuality=parsed_args["minQ"])
 			myReads = newReads
 			newReads = 0
 		end
@@ -86,21 +86,22 @@ GZip.open(parsed_args["fin"]) do file
 			allSites += 1
 
 			# calculate genotype likelihoods for all haploid cases
-			haploid = [calcGenoLike(myReads, [i], 1) for i=1:4]
+			haploid = [calcGenoLike(myReads, [i], 1, phredScale=parsed_args["phredscale"]) for i=1:4]
+
 			# We use a maximum likelihood approach to choose the major and minor alleles.
 			(major, minor, minor2, minor3) = sortperm(haploid, rev=true)
 
 			# is this biallelic?
-			if parsed_args["thBia"] > -Inf
-				biaLike = calcAlleleLike(myReads, [major, minor]; phredScale=parsed_args["phredscale"])
+			if parsed_args["lrtBia"] > -Inf
+				biaLike = calcAlleleLike(myReads, [major, minor], phredScale=parsed_args["phredscale"])
 				lrtBia = 2*(biaLike-haploid[major])
 			else
 				lrtBia = Inf
 			end
 
 			# is this triallelic?
-			if parsed_args["thTria"] < Inf
-				triaLike = calcAlleleLike(myReads, [major, minor, minor2]; phredScale=parsed_args["phredscale"])
+			if parsed_args["lrtTria"] < Inf
+				triaLike = calcAlleleLike(myReads, [major, minor, minor2], phredScale=parsed_args["phredscale"])
 				lrtTria = 2*(triaLike-biaLike)
 			else
 				lrtTria = -Inf
@@ -131,17 +132,17 @@ GZip.open(parsed_args["fin"]) do file
 				ref = nonref = 0
 				nonref_allele ='N'
 
-				ref = ((1:4)[mySite.reference .== alleles])[1] #read from mpileup file
+				ref = ((1:4)[mySite.reference .== ALLELES])[1] #read from mpileup file
 
 				#just keep major minor allel as one of ref or nonref allele
 				#and follow setting from mpile file (ref) instead of highest allele(haploid genotype) likelihood
 				if ref == major
 				 #major: allele with highest frequency defined in the genotype likelihood in view of haploid case
 					nonref = minor
-					nonref_allele = alleles[nonref]
+					nonref_allele = ALLELES[nonref]
 				elseif ref == minor
 					nonref = major
-					nonref_allele = alleles[nonref]
+					nonref_allele = ALLELES[nonref]
 				end
 
 				# to get freqMax(maximum likelihood) and freqE(expected=p*frequency)
@@ -150,7 +151,7 @@ GZip.open(parsed_args["fin"]) do file
 					# help = "number of samples [>0 ensables saf likelihoods]"
 
 					for i = 0:nSamp
-						safLikes[i+1] = calcFreqLike(myReads, [ref, nonref], i/nSamp; parsed_args["phredscale"])
+						safLikes[i+1] = calcFreqLike(myReads, [ref, nonref], i/nSamp, phredScale=parsed_args["phredscale"])
 					end
 
 					safLikes = safLikes .- maximum(safLikes)
@@ -193,8 +194,8 @@ GZip.open(parsed_args["fin"]) do file
 
 				#write to .out file
 				write(f2, join( (mySite.chrom, mySite.position,
-				 mySite.reference, nonref_allele, alleles[major],
-				 alleles[minor], lrtSNP, lrtBia, lrtTria, freqsMLE[2],
+				 mySite.reference, nonref_allele, ALLELES[major],
+				 ALLELES[minor], lrtSNP, lrtBia, lrtTria, freqsMLE[2],
 				 freqMax[1]/nSamp, freqE/nSamp),
 				 # freqMax, freqE),
 				 "\t"), "\n")

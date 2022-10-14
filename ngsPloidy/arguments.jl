@@ -61,17 +61,17 @@ function parse_commandline_poly()
 			required = false
 			default = 0
 
-		"--thSnp"
+		"--lrtSnp"
 			help = "chisquare for SNP calling"
 			arg_type = Float64
 			default = -Inf
 
-		"--thBia"
+		"--lrtBia"
 			help = "chisquare for biallelic calling"
 			arg_type = Float64
 			default = -Inf
 
-		"--thTria"
+		"--lrtTria"
 			help = "chisquare for triallelic (non) calling"
 			arg_type = Float64
 			default = Inf

@@ -1,5 +1,5 @@
 
-function calcAlleleLike(read::Reads, allele::Array{Int64}; phredScale::Int64=33)
+function calcAlleleLike(read::Reads, allele::Array{Int64,1}; phredScale::Int64=33)
 
         like = 0.0
 
@@ -16,7 +16,7 @@ function calcAlleleLike(read::Reads, allele::Array{Int64}; phredScale::Int64=33)
         return like
 end
 
-function calcGenoLike(read::Reads, allele::Array{Int64}, ploidy::Int64; phredScale::Int64=33)
+function calcGenoLike(read::Reads, allele::Array{Int64,1}, ploidy::Int64; phredScale::Int64=33)
 
         likes = zeros(ploidy+1)
         iter = 0
@@ -133,7 +133,7 @@ end
 
 # calculate likelihood (in ln format) for a given minor allele frequency
  # (in case of haploids) from major and minor
-function calcFreqLike(read::Reads, allele::Array{Int64}, maf::Float64; phredScale::Int64=33)
+function calcFreqLike(read::Reads, allele::Array{Int64,1}, maf::Float64; phredScale::Int64=33)
 	#in calcFreqLogLike1_MajorMinor() maf input set to 0.0
 
 	like = 0
@@ -161,7 +161,7 @@ end
 
 #suspected to be an unfinished function..(2020/5/27)
 # grid-search optimization for allele frequencies, only for Major and Minor alleles
-function optimFreq_GS(read::Reads, allele::Array{Int64}, nGrids::Int64)
+function optimFreq_GS(read::Reads, allele::Array{Int64,1}, nGrids::Int64)
 
 	maxlike = -Inf
 	# MLEmaf = Float64 #what's this for? collect? array or a number?
@@ -172,7 +172,7 @@ function optimFreq_GS(read::Reads, allele::Array{Int64}, nGrids::Int64)
 	# fGrid = linspace(0,1.0,nGrids)
 	fGrid = collect(range(0,1,length=nGrids))
 
-	i = 1;
+	i = 1
 	# while fGrid[i] <= 1.00
 	while i <= nGrids
 
@@ -195,7 +195,7 @@ end
 
 # golden section search optimization for allele frequencies
 # only for Major and Minor alleles
-function optimFreq(read::Reads, allele::Array{Int64}, tol::Float64) #tol: tolerance
+function optimFreq(read::Reads, allele::Array{Int64,1}, tol::Float64) #tol: tolerance
 
 	maxlike = -Inf
 	MLEmaf = Float64
@@ -240,11 +240,12 @@ function optimFreq(read::Reads, allele::Array{Int64}, tol::Float64) #tol: tolera
 end
 
 # LRT(likelihood ratio test statistic) for snp calling
-function snpTest(read::Reads, maxlike::Float64, allele::Array{Int64})
+function snpTest(read::Reads, maxlike::Float64, allele::Array{Int64,1})
 
 	maf = 0.0
-	like_H0 = maximum( [calcFreqLike(read, [major, minor], maf)
-	calcFreqLike(read, [minor, major], maf)] )
+	major = allele[1]
+	minor = allele[2]
+	like_H0 = maximum( [calcFreqLike(read, [major, minor], maf), calcFreqLike(read, [minor, major], maf)] )
 	# global and sample major could be differ
 
 	lrtSNP =  2 * (maxlike - like_H0 ) #-2(ln(p_H0))-ln(parameter space)) #LRT statistic
@@ -253,9 +254,9 @@ function snpTest(read::Reads, maxlike::Float64, allele::Array{Int64})
 	return lrtSNP
 end
 
-function binomialExpansion(ploidy::Array{Int64}, freq::Float64)
+function binomialExpansion(ploidy::Array{Int64,1}, freq::Float64)
 
-	genopriors = []
+	genopriors = [] 
 
 	for ploidy1 in ploidy
   		genopriors_1ploidy = []
@@ -270,25 +271,6 @@ function binomialExpansion(ploidy::Array{Int64}, freq::Float64)
 	return genopriors
 
 end
-
-# this is incomplete
-#function writePars(ksfs::Float64, ne:Int64, snpcall::Boolean, panc::Float64)
-
-#	# all polymoprhic in the population!
-#	ee = (1/(1:(ne-1))^(1/ksfs)) 
-#	ee=ee/sum(ee)
-#	pder = (0, ee, 0)
-
-#	# this is the expected derived allele frequency
-#	q = weighted.mean(seq(0,Ne,1), pder)/Ne # change!
-#	p = 1 - q
-
-#	# if panc=0.5 then it is folded
-#	if (panc<0) panc=sum(pder[1:(floor(Ne/2)+1)])
-
-#	return 0
-
-#end
 
 
 

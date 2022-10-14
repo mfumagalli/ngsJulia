@@ -253,7 +253,7 @@ Rscript $NGSJULIA/simulMpileup.R --copy 4x1 --sites 1000 --depth 30 --ksfs 0.90 
 ```
 Note that, as an illustration, we are not generating an output file for the real data.
 
-As we wish to call SNPs, we need to indicate the appropriate file for genotype probabilities and a threshold for SNP calling (`--thSnp`).
+As we wish to call SNPs, we need to indicate the appropriate file for genotype probabilities and a threshold for SNP calling (`--lrtSnp`).
 The former can be obtained with:
 ```
 Rscript $NGSJULIA/ngsPloidy/writePars.R -k 0.9 -n 100000 -p 1 -s > test.E.pars
@@ -261,7 +261,7 @@ Rscript $NGSJULIA/ngsPloidy/writePars.R -k 0.9 -n 100000 -p 1 -s > test.E.pars
 The latter is in chi-square score value where, for instance, 6.64 corresponds to a p-value of 0.01.
 
 ```
-$JULIA $NGSJULIA/ngsPloidy/ngsPloidy.jl --fin test.E.mpileup.gz --fpars test.E.pars --keepRef 1 --nSamples 1 --thSnp 6.64 > test.E.out
+$JULIA $NGSJULIA/ngsPloidy/ngsPloidy.jl --fin test.E.mpileup.gz --fpars test.E.pars --keepRef 1 --nSamples 1 --lrtSnp 6.64 > test.E.out
 
 Rscript $NGSJULIA/ngsPloidy/ploidyLRT.R test.E.out
 ```

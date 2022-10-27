@@ -173,7 +173,7 @@ Also note that if `--fpars` is not provided, `--fout` will show the estimate of 
 
 ---------------------------------------------
 
-If `-fglikes` is given (optional), the program ouputs the per-site genotype likelihoods for each tested ploidy.
+If `-fglikes` is given (optional), the program ouputs the per-site genotype likelihoods for each tested ploidy,
 ```
 $JULIA $NGSJULIA/ngsPloidy/ngsPloidy.jl --fin test.B.mpileup.gz --fpars test.pars --fglikes test.B.glikes.gz --nSamples 10 --keepRef 1
 ```
@@ -181,6 +181,7 @@ with the output file accessible with:
 ```
 less -S test.B.glikes.gz
 ```
+where genotype likelihoods (assuming diallelic variation) for all tested ploidy are provided on each line.
 
 --------------------------
 

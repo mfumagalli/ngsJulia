@@ -3,22 +3,26 @@
 
 library(ggplot2)
 
-# The palette with grey:
-#cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
-# http://www.cookbook-r.com/Graphs/Colors_(ggplot2)/
-
-# To use for line and point colors, add scale_colour_manual(values=cbPalette)
-
 
 data <- read.table("results.1.txt", head=T)
-
 data2 <- data[which(data$S!=10 & data$D!=10 & data$D!=0.1),]
 
-data2$D <- as.factor(data2$D)
+breaks_plot<- seq(0,5.5,0.5) # 2^(seq(-1,2.5,0.5))
+labels_plot<-breaks_plot
+labels_plot[!(breaks_plot%in%unique(data2$D))]<-""
 
-a <- ggplot(data=data2, aes(x=D, y=value, shape=estimation, color=reference)) + geom_point(position=position_dodge(0.5), size=4) + facet_grid(error ~ S, scales="free") + scale_colour_viridis_d()
+a<-ggplot(data=data2, aes(x=D, y=value, shape=reference,linetype=reference,group=paste(reference,estimation),color=estimation)) + 
+  geom_line(size=0.5) + 
+  #scale_linetype_manual(values=c("dotdash", "dotted")) +
+  scale_shape_manual(values=c(19,21))+
+  geom_point(size=2,fill="white",stroke=1) + 
+  facet_grid( error ~  S + estimation, scales="free")+
+  scale_colour_manual(values=c("#D81159","#218380","#FFBC42"))+
+  scale_x_continuous(breaks=breaks_plot,labels=labels_plot,trans="log2")+
+  theme_minimal()+
+  labs(x="Depth",y=NULL)+
+  theme(panel.grid.major=element_line(color="gray95"),panel.grid.minor=element_line(color="gray95"))
 
-ggsave("plot.1.png")
 
 
 

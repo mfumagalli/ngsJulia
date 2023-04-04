@@ -3,31 +3,23 @@
 
 library(ggplot2)
 
-# The palette with grey:
-cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
-# http://www.cookbook-r.com/Graphs/Colors_(ggplot2)/
-
-# To use for line and point colors, add
-#scale_colour_manual(values=cbPalette)
-
 data <- read.table("results.7.txt", head=T, stringsAsFact=F)
-
 data[,2][which(data[,2]=="null")]<-"non_causal"
-
 colnames(data)=c("D","SNP","LRT")
-
 data$D=as.factor(data$D)
 data$SNP=factor(data$SNP, levels=c("non_causal","causal"))
 #data$LRT=as.factor(data$LRT)
 
-
-a <- ggplot(data=data) + geom_boxplot(aes(x=SNP, y=LRT), notch=T) + facet_grid(. ~ D)
-
-a
-
-ggsave("plot.7.png")
-
-
+a <- ggplot(data=data,aes(x=SNP, y=LRT, color=SNP,fill=SNP)) +
+  geom_boxplot(position=position_dodge(0.85),width=1,alpha=0.5) + 
+  labs(x="SNP",y="LRT")+
+  scale_colour_manual(values=c("#4C4C4C","#DDD92A"))+
+  scale_fill_manual(values=c("#4C4C4C","#DDD92A"))+
+  theme_minimal()+
+  theme(axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        panel.grid.major=element_line(color="gray95"),panel.grid.minor=element_line(color="gray95"))+
+  facet_grid(. ~ D)
 
 
 

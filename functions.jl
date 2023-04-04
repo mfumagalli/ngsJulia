@@ -1,4 +1,15 @@
 
+"""
+	calcAlleleLike(read::Reads, allele::Array{Int64,1}; phredScale::Int64=33)
+
+Calculate allele frequency likelihoods from a `Reads` object.
+
+# Example
+```julia-repl
+julia> calcAlleleLike(myReads, allele=[1,2])
+1
+```
+"""
 function calcAlleleLike(read::Reads, allele::Array{Int64,1}; phredScale::Int64=33)
 
         like = 0.0
@@ -116,6 +127,11 @@ end
 
 This function receives a read object and returns the sum of non major alleles.
 This is used to filter data based on the proportion (or count) of minor allele.
+
+# Example
+```julia-repl
+>julia 
+```
 """
 function calcNonMajorCounts(read::Reads)
 

@@ -1,4 +1,4 @@
-site_name: ngsJulia-doc
+site_name: ngsJulia
   # site_url: 
 
 nav:
@@ -13,6 +13,5 @@ nav:
 
 theme:
     name: readthedocs
-
 
 

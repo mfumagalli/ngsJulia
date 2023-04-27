@@ -3,10 +3,9 @@
 As an illustration, assume we have sequencing data of a diallelic site for a __triploid__ organism and we wish to do genotype calling.
 Here how we can do it in `ngsJulia`.
 
-Open a Julia'shell and load templates and functions in `ngsJulia`:
+Open a Julia'shell and load `ngsJulia`:
 ```
-include("templates.jl");
-include("functions.jl");
+include("ngsJulia.jl");
 ```
 
 Let's assume we have the following sequencing data stored in these variables:

@@ -1,5 +1,5 @@
 site_name: ngsJulia
-  # site_url: 
+site_url: https://ngsjulia.readthedocs.io/
 
 nav:
   - Home: 'index.md'
@@ -7,6 +7,7 @@ nav:
   - 'API':
     - 'List': 'api.md'
     - 'Custom': 'custom.md'
+    - 'Auxiliary': 'aux.md'
   - 'CLI':
     - 'ngsPloidy': 'ngsPloidy.md'
     - 'ngsPool': 'ngsPool.md'

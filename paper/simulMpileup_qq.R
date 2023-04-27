@@ -4,6 +4,8 @@
 
 #seq1 272 T 24 ,.$.....,,.,.,...,,,.,..^+. <<<+;<<<<<<<<<<<=<;<;7<&
 
+# qq version means that you can specific the pop allele frequency yourself! useful to simulate with fixed allele frequency
+
 library("getopt")
 
 myPaths <- .libPaths()   # get the paths

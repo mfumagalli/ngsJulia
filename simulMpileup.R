@@ -19,7 +19,7 @@ spec=matrix(c(
 	      'lendepth', 'l', 2, "integer", "mean length of sites with increasing/decreasing depth [default 0, disabled]",
 	      'errdepth', 'e', 2, "double", "error rate in mean depth [default 0.05]",
 	      'qual', 'q', 2, "integer", "mean base quality in phred score [default 20]",
-	      'pvar', 'r', 2, "double", "probability that site is variabile in the population [1.0]",
+	      'pvar', 'r', 2, "double", "probability that site is variable in the population [1.0]",
 	      'ksfs', 'k', 2, "double", "coeff. for shape of SFS default [1.0]",
 	      'panc', 'a', 2, "double", "probability that ancestor state is correct [1.0]",
 	      'ne', 'n', 2, "integer", "effective population size [default 10,000]",

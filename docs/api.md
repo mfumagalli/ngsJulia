@@ -1,67 +1,137 @@
 
-`ngsJulia` has templates and functions that can be used to create custom analysis.
-As an illustration, assume we have sequencing data of a diallelic site for a __triploid__ organism and we wish to do genotype calling.
-Here how we can do it in `ngsJulia`.
+An alphabetical list of all available APIs is provided here.
+Documentation can be assessed in `julia` using the help `?` command.
 
-Open a Julia'shell and load templates and functions in `ngsJulia`:
-```
-include("templates.jl");
-include("functions.jl");
-```
+----------------------------------------------------------
 
-Let's assume we have the following sequencing data stored in these variables:
-```
-myReads=Reads("AGAAAGAAAA","1533474323") # 10 reads and associated base qualities in Phred scores
-mySite=Site("chrom12", 835132, 'A') # chromosome, position and reference allele
-```
-These variable can be easily created by reading mpileup files, for instance using the following routine for this example:
-```
-using GZip
+- binomialExpansion(ploidy::Array{Int64,1}, freq::Float64)
 
-GZip.open("input.mpileup.gz") do file
-        for line in eachline(file)
-                l = (split(line, "\t"))
-                global mySite = Site(l[1], parse(Int64, l[2]), uppercase(Char(l[3][1])))
-                global myReads = Reads(chomp(l[5]), chomp(l[6]))
-        end
-end
+Return the prior probabilities under HWE for a given ploidy and allele frequency.
+
+```julia-repl
+julia> binomialExpansion([2,3], 0.5) for diploid and triploid with allele frequency 0f 0.50
+2-element Vector{Any}:
+ Any[0.25, 0.5, 0.25]
+ Any[0.125, 0.375, 0.375, 0.125]
 ```
 
-We can visualise the nucleotide likelihoods:
-```
-using Combinatorics
+---------------------------------------------------
 
-nucleoLikes = [calcGenoLike(myReads, [i], 1) for i=1:4]
-```
-which in turn can be used to estimate major and minor alleles:
-```
-(major, minor, minor2, minor3) = sortperm(nucleoLikes, rev=true);
-println("Major allele is ", ALLELES[major], " and minor allele is ", ALLELES[minor])
-```
+- convertSyms(read::Reads, site::Site)
 
-From these variables, it's easy to visualise the genotype likelihoods of a triploid for said alleles
-```
-genoLikes = calcGenoLike(myReads, [major, minor], 3)
-```
-where the genotypes in output are ordered as "(major,major,major), (major, major, minor), (major, minor, minor), (minor, minor, minor)", as that the most likely genotype is
-```
-findmax(genoLikes)[2] # (major, major, minor), AAG
+Convert symbols in the fifth element (sequence reads) of pileup (i.e. sequenced reads) to nucleotides from `Reads` and `Site` objects. Pileup format as defined here http://samtools.sourceforge.net/pileup.shtml
+
+```julia-repl
+rawReads=Reads(".G..G...","1533474323") # 10 reads and associated base qualities in Phred scores
+mySite=Site("chrom12", 835132, 'A')
+julia> convertSyms(rawReads, mySite)
+("AGAAGAAA", Any[])
 ```
 
-If we wish to set up a custom algorithm for genotype calling, then we can for instance calculate the difference in log likelihoods between the most likely and second most likely genotype as a weight of evidence
+------------------------------------------------------------------------
+
+- calcAlleleLike(read::Reads, allele::Array{Int64,1}; phredScale::Int64=33)
+
+Calculate allele frequency likelihoods from a `Reads` object.
+
+```julia-repl
+julia> myReads=Reads("AGAAAGAAAA","1533474323")
+julia> calcAlleleLike(myReads, [3], 1) # for allele G and haploid
+-41.732245037944345
 ```
-diff(genoLikes[sortperm(genoLikes, rev=true)[[2,1]]])
+
+--------------------------------------------------------------------------
+
+- calcFreqLike(read::Reads, allele::Array{Int64,1}, maf::Float64; phredScale::Int64=33)
+
+Calculate the likelihood (in _ln_ format) for a given minor allele frequency, assuming haploid state.
+
+```julia-repl
+julia> myReads=Reads("AGAAAGAAAA","1533474323")
+julia> calcFreqLike(myReads, [1,3], 0.10) # for major-minor alleles A and G with minor frequency 0.10
+-5.545510518505054
 ```
 
-In general, `ngsJulia` provides templates and functions useful for:
-* data filtering based on quality and depth
-* SNP and genotype calling
-* nucleotide and genotype likelihoods for arbitrary ploidy
-* allele frequency estimation
-
-More specific usages can be found by investigating the code within `ngsPool` and `ngsPloidy`.
+----------------------------------------------------------------------------
 
 
+- calcGenoLike(read::Reads, allele::Array{Int64,1}, ploidy::Int64; phredScale::Int64=33)
+
+Calculate allele frequency likelihoods from a `Reads` object.
+
+```julia-repl
+julia> myReads=Reads("AGAAAGAAAA","1533474323")
+julia> calcGenoLike(myReads, [1,3], 2) # for alleles A and G and diploid
+3-element Vector{Float64}:
+ -12.002917877610738
+  -7.031999955835661
+ -41.732245037944345
+```
+
+-----------------------------------------------------------------------------------
+
+calcNonMajorCounts(read::Reads)
+
+- Calculate the sum of non major alleles from a Reads object, useful to filter data based on the proportion (or count) of minor allele.
+
+```julia-repl
+julia> myReads=Reads("AGAAAGAAAA","1533474323")
+julia> calcNonMajorCounts(myReads)
+2
+```
+
+------------------------------------------------------------------------------------
+
+- filterReads(read::Reads; phredScale::Int64=33, minBaseQuality::Int64=5)
+
+Filter reads based on minimum base quality.
+
+```julia-repl
+julia> myReads=Reads("AGAAAGAAAA","1533474323")
+julia> filterReads(myReads, minBaseQuality=20)
+Reads("GG", "57")
+```
+
+-----------------------------------------------------------------------------------
+
+- optimFreq(read::Reads, allele::Array{Int64,1}, tol::Float64)
+
+Golden-search optimization for minor allele frequency given major and minor alleles.
+Return likelihood value and the most likely minor allele frequency.
+
+```julia-repl
+julia> myReads=Reads("AGAAAGAAAA","1533474323")
+julia> optimFreq(myReads, [1,3], 1e-4) # for major-minor alleles A and G with tolerance for low frequency of 1e-4
+(-5.122068763452686, 0.19894055410912365)
+```
+
+-----------------------------------------------------------------------------------
+
+- optimFreq\_GS(read::Reads, allele::Array{Int64,1}, nGrids::Int64)
+
+Grid-search optimization for minor allele frequency given major and minor alleles.
+Return likelihood value and the most likely minor allele frequency.
+
+```julia-repl
+julia> myReads=Reads("AGAAAGAAAA","1533474323")
+julia> optimFreq_GS(myReads, [1,3], 100) # for major-minor alleles A and G with grid density of 1/100
+(-5.122357762466471, 0.20202020202020202)
+```
+
+----------------------------------------------------------------------------
+
+- snpTest(read::Reads, maxlike::Float64, allele::Array{Int64,1})
+
+Return the (likelihood ratio test (LRT) statistic) for SNP calling.
+
+```julia-repl
+julia> myReads=Reads("AGAAAGAAAA","1533474323")
+julia> freqsMLE=optimFreq(myReads, [1,3], 1e-4) # for alleles A and G
+julia> snpTest(myReads, freqsMLE[1], [1, 3])
+13.761698228316105
+```
+
+---------------------------------------------------------------------
 
 
 

@@ -103,7 +103,7 @@ less -S test.saf.gz
 reporting the sample allele frequency log-likelihoods at each site (scaled to the ML).
 
 
-## Site frequency spectrum (SFS)
+## Site frequency spectrum
 
 The file containing the sample allele frequency log-likelihoods can be exploited for further downstream analyses.
 For instance, `ngsPool` provides a script to estimate the SFS with three different methods.
@@ -121,7 +121,7 @@ and reports the estimated SFS based on:
 * fit_count: fitting an exponential curve with counts of MLE of per-site allele frequencies
 * fit_saf: fitting an exponential curve with per-site sample allele frequency likelihoods
 
-# Association test
+## Association test
 
 `ngsPool` provides a script to calculate association tests from sample allele frequency likelihoods.
 Let's assume we have one target SNP and two groups, cases and controls, and we wish to test for a significant difference in allele frequencies.

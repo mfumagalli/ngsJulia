@@ -629,6 +629,36 @@ end
 # -------------------------
 
 
+# calculate AIC and BIC from model likelihoods # deprecated, not working
+function calcModelStat(likes::Array{Float64,2}, ploidy::Array{Int64, 1}, sites::Array{Float64,1})
+
+        if length(ploidy)!=size(likes,2)
+                println("Error!: ploidy and likelihoods size do not match in AIC/BIC function.")
+        end
+
+        nsams = size(likes, 1)
+
+        # nr of parameters, set of genotypes
+        k = ploidy +1
+        # fix this in case SNP calling is done (k is less) or it is unfolded (k = ploidy) or ancestral uncertain (k=...)
+
+        bic = zeros(Float64, nsams, length(ploidy))
+        aic = zeros(Float64, nsams, length(ploidy))
+
+        for n = 1:nsams
+
+                for p = 1:length(ploidy)
+
+                        # this gives error, no method matching +(::Vector{Int64}, ::Int64)
+                        bic[n,p] = -2*likes[n,p]+(k[p]*log(sites[n]))
+                        aic[n,p] = (2*k[p])-(2*likes[n,p]) + ((2*k[p]*(k[p]+1))/(sites[n]-k[p]-1))
+
+                end
+        end
+
+        return (aic, bic)
+
+end
 
 
 

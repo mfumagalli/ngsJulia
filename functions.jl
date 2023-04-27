@@ -1,4 +1,8 @@
 
+using GZip
+using ArgParse
+using Combinatorics
+
 """
 	calcAlleleLike(read::Reads, allele::Array{Int64,1}; phredScale::Int64=33)
 
@@ -6,11 +10,12 @@ Calculate allele frequency likelihoods from a `Reads` object.
 
 # Example
 ```julia-repl
-julia> calcAlleleLike(myReads, allele=[1,2])
-1
+julia> myReads=Reads("AGAAAGAAAA","1533474323")
+julia> calcAlleleLike(myReads, [3], 1) # for allele G and haploid
+-41.732245037944345
 ```
 """
-function calcAlleleLike(read::Reads, allele::Array{Int64,1}; phredScale::Int64=33)
+function calcAlleleLike(read::Reads, allele::Array{Int64,1}, ploidy::Int64; phredScale::Int64=33)
 
         like = 0.0
 
@@ -27,6 +32,21 @@ function calcAlleleLike(read::Reads, allele::Array{Int64,1}; phredScale::Int64=3
         return like
 end
 
+"""
+        calcGenoLike(read::Reads, allele::Array{Int64,1}, ploidy::Int64; phredScale::Int64=33)
+
+Calculate allele frequency likelihoods from a `Reads` object.
+
+# Example
+```julia-repl
+julia> myReads=Reads("AGAAAGAAAA","1533474323")
+julia> calcGenoLike(myReads, [1,3], 2) # for alleles A and G and diploid
+3-element Vector{Float64}:
+ -12.002917877610738
+  -7.031999955835661
+ -41.732245037944345
+```
+"""
 function calcGenoLike(read::Reads, allele::Array{Int64,1}, ploidy::Int64; phredScale::Int64=33)
 
         likes = zeros(ploidy+1)
@@ -54,8 +74,19 @@ function calcGenoLike(read::Reads, allele::Array{Int64,1}, ploidy::Int64; phredS
         return likes
 end
 
-# convert symbols in fifth element(sequence reads) in pileup to nucleotides
-# pileup format as defined here: http://samtools.sourceforge.net/pileup.shtml
+"""
+	convertSyms(read::Reads, site::Site)
+
+Convert symbols in the fifth element (sequence reads) of pileup (i.e. sequenced reads) to nucleotides. Pileup format as defined here http://samtools.sourceforge.net/pileup.shtml
+
+# Example
+```julia-repl
+rawReads=Reads(".G..G...","1533474323") # 10 reads and associated base qualities in Phred scores
+mySite=Site("chrom12", 835132, 'A')
+julia> convertSyms(rawReads, mySite)
+("AGAAGAAA", Any[])
+```
+"""
 function convertSyms(read::Reads, site::Site)
 
 	bases = ""
@@ -99,7 +130,18 @@ function convertSyms(read::Reads, site::Site)
 	return (bases, indexDelN)
 end
 
-# filter based on minimum base quality
+"""
+	filterReads(read::Reads; phredScale::Int64=33, minBaseQuality::Int64=5)
+
+Filter reads based on minimum base quality.
+
+# Example
+```julia-repl
+julia> myReads=Reads("AGAAAGAAAA","1533474323")
+julia> filterReads(myReads, minBaseQuality=20)
+Reads("GG", "57")
+```
+"""
 function filterReads(read::Reads; phredScale::Int64=33, minBaseQuality::Int64=5)
 
 	filt=Reads("","")
@@ -125,12 +167,13 @@ end
 """
 	calcNonMajorCounts(read::Reads)
 
-This function receives a read object and returns the sum of non major alleles.
-This is used to filter data based on the proportion (or count) of minor allele.
+Calculate the sum of non major alleles from a Reads object, useful to filter data based on the proportion (or count) of minor allele.
 
 # Example
 ```julia-repl
->julia 
+julia> myReads=Reads("AGAAAGAAAA","1533474323")
+julia> calcNonMajorCounts(myReads)
+2
 ```
 """
 function calcNonMajorCounts(read::Reads)
@@ -139,16 +182,25 @@ function calcNonMajorCounts(read::Reads)
 
 	if length(read.base)>0
 		for i = 1:length(read.base)
-		     counts += (ALLELES.==split(read.base,"")[i])
+			counts += (ALLELES.==split(read.base,"")[i][1])
 		end
 	end
 
 	return sum(counts)-sort!(counts, rev=true)[1]
 end
 
+"""
+	calcFreqLike(read::Reads, allele::Array{Int64,1}, maf::Float64; phredScale::Int64=33)
 
-# calculate likelihood (in ln format) for a given minor allele frequency
- # (in case of haploids) from major and minor
+Calculate the likelihood (in _ln_ format) for a given minor allele frequency, assuming haploid state.
+
+# Example
+```julia-repl
+julia> myReads=Reads("AGAAAGAAAA","1533474323")
+julia> calcFreqLike(myReads, [1,3], 0.10) # for major-minor alleles A and G with minor frequency 0.10
+-5.545510518505054
+```
+"""
 function calcFreqLike(read::Reads, allele::Array{Int64,1}, maf::Float64; phredScale::Int64=33)
 	#in calcFreqLogLike1_MajorMinor() maf input set to 0.0
 
@@ -174,9 +226,19 @@ function calcFreqLike(read::Reads, allele::Array{Int64,1}, maf::Float64; phredSc
 	return like
 end
 
+"""
+	optimFreq_GS(read::Reads, allele::Array{Int64,1}, nGrids::Int64)
 
-#suspected to be an unfinished function..(2020/5/27)
-# grid-search optimization for allele frequencies, only for Major and Minor alleles
+Grid-search optimization for minor allele frequency given major and minor alleles.
+Return likelihood value and the most likely minor allele frequency.
+
+# Example
+```julia-repl
+julia> myReads=Reads("AGAAAGAAAA","1533474323")
+julia> optimFreq_GS(myReads, [1,3], 100) # for major-minor alleles A and G with grid density of 1/100
+(-5.122357762466471, 0.20202020202020202)
+```
+"""
 function optimFreq_GS(read::Reads, allele::Array{Int64,1}, nGrids::Int64)
 
 	maxlike = -Inf
@@ -209,8 +271,19 @@ function optimFreq_GS(read::Reads, allele::Array{Int64,1}, nGrids::Int64)
 	return (maxlike, MLEmaf)
 end
 
-# golden section search optimization for allele frequencies
-# only for Major and Minor alleles
+"""
+        optimFreq(read::Reads, allele::Array{Int64,1}, tol::Float64)
+
+Golden-search optimization for minor allele frequency given major and minor alleles.
+Return likelihood value and the most likely minor allele frequency.
+
+# Example
+```julia-repl
+julia> myReads=Reads("AGAAAGAAAA","1533474323")
+julia> optimFreq(myReads, [1,3], 1e-4) # for major-minor alleles A and G with tolerance for low frequency of 1e-4
+(-5.122068763452686, 0.19894055410912365)
+```
+"""
 function optimFreq(read::Reads, allele::Array{Int64,1}, tol::Float64) #tol: tolerance
 
 	maxlike = -Inf
@@ -255,7 +328,19 @@ function optimFreq(read::Reads, allele::Array{Int64,1}, tol::Float64) #tol: tole
 
 end
 
-# LRT(likelihood ratio test statistic) for snp calling
+"""
+	snpTest(read::Reads, maxlike::Float64, allele::Array{Int64,1})
+
+Return the (likelihood ratio test (LRT) statistic) for SNP calling.
+
+# Example
+```julia-repl
+julia> myReads=Reads("AGAAAGAAAA","1533474323")
+julia> freqsMLE=optimFreq(myReads, [1,3], 1e-4) # for alleles A and G
+julia> snpTest(myReads, freqsMLE[1], [1, 3])
+13.761698228316105
+```
+"""
 function snpTest(read::Reads, maxlike::Float64, allele::Array{Int64,1})
 
 	maf = 0.0
@@ -270,6 +355,19 @@ function snpTest(read::Reads, maxlike::Float64, allele::Array{Int64,1})
 	return lrtSNP
 end
 
+"""
+	binomialExpansion(ploidy::Array{Int64,1}, freq::Float64)
+
+Return the prior probabilities under HWE for a given ploidy and allele frequency.
+
+# Example
+```julia-repl
+julia> binomialExpansion([2,3], 0.5) for diploid and triploid with allele frequency 0f 0.50
+2-element Vector{Any}:
+ Any[0.25, 0.5, 0.25]
+ Any[0.125, 0.375, 0.375, 0.125]
+```
+"""
 function binomialExpansion(ploidy::Array{Int64,1}, freq::Float64)
 
 	genopriors = [] 

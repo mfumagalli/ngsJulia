@@ -4,10 +4,12 @@ site_name: ngsJulia-doc
 nav:
   - Home: 'index.md'
   - 'Install': 'install.md'
+  - 'API':
+    - 'List': 'api.md'
+    - 'Custom': 'custom.md'
   - 'CLI':
     - 'ngsPloidy': 'ngsPloidy.md'
     - 'ngsPool': 'ngsPool.md'
-  - 'API': 'api.md' 
 
 theme:
     name: readthedocs

@@ -28,8 +28,9 @@ offset	f	0	integer	offset value for genomic position
 seed	u	2	integer	random seed for simulations reproducibility [default 180218]
 ```
 
+Example to simulate 2 triploid samples for 3 SNPs and average depth of 5X:
 ```bash
-$ Rscript simulMpileup.R --copy 3x2 --sites 3 --depth 5 # 2 triploid samples for 3 SNPs and average depth of 5X
+$ Rscript simulMpileup.R --copy 3x2 --sites 3 --depth 5
 copy_3x2	1	A	15	...............	543660320413024	17	.................	25234321684322154
 copy_3x2	2	A	11	C...C.C.CC.	20441234234	19	C.C.CCCCCC.CC..CCCC	3262424423354344545
 copy_3x2	3	A	13	........G....	4622432455514	11	.......CC..	42234625112
@@ -53,19 +54,19 @@ panc	p	2	double	prob of ancestral being correct, if 0.5 is folded [default], if<
 help	h	0	logical	print help message
 ```
 
-where:
-* '-k' denotes the shape of the site frequency spectrum:
-        - k=1 : constant population size
-        - k>1 : population bottleneck
-        - k<1 : population growth
-* '-n' is the effective population size
-* '-s' if a flag and specifies that SNPs have beeen called; this is useful only if only one sample is analysed with called SNPs
-* '-p' specifies how to define the probability that the ancestral state is the major allele, e.g., if 0.5 this means you assume folded data, if -1 it will compute it using the site frequency spectrum
-* '-h' prints a help message.
+where:\\
+* '-k' denotes the shape of the site frequency spectrum:\\
+        - k=1 : constant population size\\
+        - k>1 : population bottleneck\\
+        - k<1 : population growth\\
+* '-n' is the effective population size\\
+* '-s' if a flag and specifies that SNPs have beeen called; this is useful only if only one sample is analysed with called SNPs\\
+* '-p' specifies how to define the probability that the ancestral state is the major allele, e.g., if 0.5 this means you assume folded data, if -1 it will compute it using the site frequency spectrum\\
+* '-h' prints a help message.\\
 
-
+Example to generate genotype probabilities with effective population size of 1000 and folded spectrum
 ```bash
-$ Rscript ngsPloidy/writePars.R --ne 1000 --panc 0.5 # with effective population size of 1000 and folded spectrum
+$ Rscript ngsPloidy/writePars.R --ne 1000 --panc 0.5
 0.5	0.5
 0.8665236	0.1334764
 0.7508632	0.2313209	0.01781594
@@ -77,31 +78,29 @@ $ Rscript ngsPloidy/writePars.R --ne 1000 --panc 0.5 # with effective population
 0.3178654	0.3917033	0.2111783	0.06505838	0.01252672	0.001543658	0.00011889	0.000005232402	0.0000001007477
 ```
 
-Further examples are:
-
+Further examples for specific scenarios are:
 * with known allelic polarisation:
 ```bash
-Rscript $NGSJULIA/ngsPloidy/writePars.R -k 1 -n 10000 -p 1
+Rscript ngsPloidy/writePars.R -k 1 -n 10000 -p 1
 ```
 * with uncertain assignment of ancestral alleles (probability of being correct of 0.90)
 ```bash
-Rscript $NGSJULIA/ngsPloidy/writePars.R -k 1 -n 10000 -p 0.90
+Rscript ngsPloidy/writePars.R -k 1 -n 10000 -p 0.90
 ```
 * with automatic calculation of probability of misassignment of ancestral allele
 ```bash
-Rscript $NGSJULIA/ngsPloidy/writePars.R -k 1 -n 10000 -p -1
+Rscript ngsPloidy/writePars.R -k 1 -n 10000 -p -1
 ```
 * with folded spectrum (unknown allelic polarisation)
 ```bash
-Rscript $NGSJULIA/ngsPloidy/writePars.R -k 1 -n 10000 -p 0.5
+Rscript ngsPloidy/writePars.R -k 1 -n 10000 -p 0.5
 ```
 * or with SNPs only
 ```bash
-Rscript $NGSJULIA/ngsPloidy/writePars.R -k 1 -n 10000 -p 1 -s
+Rscript ngsPloidy/writePars.R -k 1 -n 10000 -p 1 -s
 ```
 
 -------------------------------------------------------------------------------------------------
-
 
 
 

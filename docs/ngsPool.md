@@ -1,11 +1,12 @@
 # ngsPool
 
-Estimation of allele frequency (and more) from pooled sequencing data using `ngsJulia`.
-`ngsPool` implements several estimators of allele frequencies from pooled NGS data.
-It provides additional scripts for estimators of the site frequency spectrum (SFS) and for association tests.
+`ngsPool` implements a method to estimate allele frequencies and perform various analyses from pooled sequencing data using `ngsJulia`.
+The model is described in the related [paper](https://f1000research.com/articles/11-126).
+In addition to provide several estimators of allele frequencies, `ngsPool` includes scripts to estimate the site frequency spectrum and for association tests.
 
 To showcase its use, this tutorial will simulate some pooled sequencing data and demonstrate the various options and possible analyses implemented in `ngsPool`.
-We assume that an environment variable `NGSJULIA` is defined pointing to the cloned directory.
+Throughout these examples, we assume that we defined an environment variable `NGSJULIA` that points to the installation path.
+
 
 ## Simulate pooled NGS data 
 
@@ -14,6 +15,7 @@ We can explore its options:
 ```bash
 Rscript $NGSJULIA/simulMpileup.R --help
 ```
+which are also accessible on this [page](https://ngsjulia.readthedocs.io/en/latest/aux/).
 
 Let's assume that we wish to simulate 10 diploid genomes, 1000 base pairs each with an average sequencing depth of 20 and base quality of 20 in Phred score. Samples come from a population of 10,000 effective size under constant-size evolution.
 We can do that by running:
@@ -58,16 +60,16 @@ The ouput file can be visualised with:
 ```bash
 less -S test.out.gz
 ```
-and for each called SNP provides the following information:
-* chromosome
-* position        
-* reference allele
-* nonreference allele
-* major allele (inferred)
-* minor allele (inferred) 
-* lrtSNP (LRT statistic for SNP calling)
-* lrtBia  (LRT statistic for bialleic site calling)
-* lrtTria ((LRT statistic for trialleic site calling) 
+and for each called SNP provides the following information: \\
+* chromosome\\
+* position    \\    
+* reference allele\\
+* nonreference allele\\
+* major allele (inferred)\\
+* minor allele (inferred) \\
+* lrtSNP (LRT statistic for SNP calling)\\
+* lrtBia  (LRT statistic for bialleic site calling)\\
+* lrtTria ((LRT statistic for trialleic site calling)\\ 
 * maf (estimated minor allele frequency)
 
 The remaining columns are disabled using these options.
@@ -111,9 +113,9 @@ The output file is accessible with
 ```bash
 cat sfs.txt
 ```
-and reports the estimated SFS based on:
-* count: counting over MLE of per-site allele frequencies
-* fit\_count: fitting an exponential curve with counts of MLE of per-site allele frequencies
+and reports the estimated SFS based on:\\
+* count: counting over MLE of per-site allele frequencies\\
+* fit\_count: fitting an exponential curve with counts of MLE of per-site allele frequencies\\
 * fit\_saf: fitting an exponential curve with per-site sample allele frequency likelihoods
 
 ## Association test
@@ -132,10 +134,10 @@ Rscript $NGSJULIA/simulMpileup_qq.R --out /dev/null --copy 2x200 --sites 1 --dep
 We calculate sample allele frequency likelihoods with:
 ```bash
 # cases
-$JULIA $NGSJULIA/ngsPool/ngsPool.jl --fin test.cases.mpileup.gz --fout /dev/null --nChroms 300 --fsaf test.cases.saf.gz 2> /dev/null
+julia $NGSJULIA/ngsPool/ngsPool.jl --fin test.cases.mpileup.gz --fout /dev/null --nChroms 300 --fsaf test.cases.saf.gz 2> /dev/null
 
 # controls
-$JULIA $NGSJULIA/ngsPool/ngsPool.jl --fin test.controls.mpileup.gz --fout /dev/null --nChroms 300 --fsaf test.controls.saf.gz 2> /dev/null
+julia $NGSJULIA/ngsPool/ngsPool.jl --fin test.controls.mpileup.gz --fout /dev/null --nChroms 300 --fsaf test.controls.saf.gz 2> /dev/null
 ```
 
 These files are then used to test for association:
@@ -149,5 +151,50 @@ cat assoc.txt
 and shows LRT statistic and p-value (in log scale).
 With multiple SNPs, each test result will be shown on different lines.
 
+## Further options
+
+All options available in `ngsPool` can be accessed with:
+```bash
+julia ngsPool/ngsPool.jl --help
+
+usage: ngsPool.jl --fin FIN --fout FOUT [--fsaf FSAF]
+                  [--nChroms NCHROMS] [--lrtSnp LRTSNP]
+                  [--lrtBia LRTBIA] [--lrtTria LRTTRIA] [--minQ MINQ]
+                  [--minDepth MINDEPTH] [--maxDepth MAXDEPTH]
+                  [--nGrids NGRIDS] [--tol TOL]
+                  [--phredscale PHREDSCALE] [--verbose VERBOSE]
+                  [--printSites PRINTSITES] [-h]
+
+optional arguments:
+  --fin FIN             input file gzipped mpileup
+  --fout FOUT           output file gzipped text
+  --fsaf FSAF           output gzipped saf file (default: "/dev/null")
+  --nChroms NCHROMS     total number of chromosomes pooled (ploidy *
+                        number of individuals) [>0 ensables saf
+                        likelihoods] (type: Int64, default: 0)
+  --lrtSnp LRTSNP       LRT for SNP calling (type: Float64, default:
+                        -Inf)
+  --lrtBia LRTBIA       LRT for biallelic calling (type: Float64,
+                        default: -Inf)
+  --lrtTria LRTTRIA     LRT for triallelic (non) calling (type:
+                        Float64, default: Inf)
+  --minQ MINQ           minimum base quality in phredscore (type:
+                        Int64, default: 5)
+  --minDepth MINDEPTH   minimum global depth (type: Int64, default: 1)
+  --maxDepth MAXDEPTH   maximum global depth (type: Int64, default:
+                        100000)
+  --nGrids NGRIDS       grid density for grid-search estimation of
+                        allele frequencies (type: Int64, default: 0)
+  --tol TOL             tolerance for GSS estimation of allele
+                        frequencies (type: Float64, default: 1.0e-5)
+  --phredscale PHREDSCALE
+                        phredscale (type: Int64, default: 33)
+  --verbose VERBOSE     verbosity level (type: Int64, default: 1)
+  --printSites PRINTSITES
+                        print on stdout every --printSites sites
+                        (type: Int64, default: 10000)
+  -h, --help            show this help message and exit
+
+```
 
 

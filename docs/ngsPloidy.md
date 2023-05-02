@@ -246,12 +246,93 @@ Also note that in this case the number of analysed sites is less that the number
 
 ## Further options
 
-Other options in `ngsPloidy` can be retrieved by:
-```bash
-julia $NGSJULIA/ngsPloidy/ngsPloidy.jl --help
-```
 Several filtering options on base quality, depth and proportion of minor reads are available. Likewise, options to include only bialleic sites (i.e. exclude triallelic and multiallelic sites) can be used.
 Results may vary depending on the filtering options and users are encourage to consider how their inferences are robust to the data processing pipeline.
+
+All options in `ngsPloidy` can be retrieved by:
+```bash
+$ julia $NGSJULIA/ngsPloidy/ngsPloidy.jl --help
+
+usage: ngsPloidy.jl --fin FIN [--fpars FPARS] [--fout FOUT]
+                    [--fglikes FGLIKES] --nSamples NSAMPLES
+                    [--ploidy PLOIDY] [--keepRef KEEPREF]
+                    [--callGeno CALLGENO] [--unif UNIF]
+                    [--lrtSnp LRTSNP] [--lrtBia LRTBIA]
+                    [--lrtTria LRTTRIA] [--minMaf MINMAF]
+                    [--minQ MINQ]
+                    [--minNonMajorCount MINNONMAJORCOUNT]
+                    [--minNonMajorProportion MINNONMAJORPROPORTION]
+                    [--minGlobalDepth MINGLOBALDEPTH]
+                    [--maxGlobalDepth MAXGLOBALDEPTH]
+                    [--minSampleDepth MINSAMPLEDEPTH]
+                    [--maxSampleDepth MAXSAMPLEDEPTH]
+                    [--minSamples MINSAMPLES] [--nGrids NGRIDS]
+                    [--tol TOL] [--phredscale PHREDSCALE]
+                    [--verbose VERBOSE] [--debug DEBUG]
+                    [--printSites PRINTSITES] [-h]
+
+
+
+optional arguments:
+  --fin FIN             input file gzipped mpileup
+  --fpars FPARS         pars (pANC and geno priors) file (default:
+                        "NULL")
+  --fout FOUT           output file gzipped text (default: "NULL")
+  --fglikes FGLIKES     genotype likelihoods file gzipped text
+                        (default: "NULL")
+  --nSamples NSAMPLES   number of samples (type: Int64)
+  --ploidy PLOIDY       ploidies to be tested, e.g. 2-5 or 1,3-5
+                        (default: "1-8")
+  --keepRef KEEPREF     keep reference as one possible allele (type:
+                        Int64, default: 0)
+  --callGeno CALLGENO   call genotypes (highest likelihood/posterior
+                        probability) (type: Int64, default: 0)
+  --unif UNIF           use a uniform prior for genotype probabilities
+                        (type: Int64, default: 0)
+  --lrtSnp LRTSNP       chisquare for SNP calling (type: Float64,
+                        default: -Inf)
+  --lrtBia LRTBIA       chisquare for biallelic calling (type:
+                        Float64, default: -Inf)
+  --lrtTria LRTTRIA     chisquare for triallelic (non) calling (type:
+                        Float64, default: Inf)
+  --minMaf MINMAF       minimum allele frequency for SNP calling
+                        (type: Float64, default: -Inf)
+  --minQ MINQ           minimum base quality in phredscore (type:
+                        Int64, default: 13)
+  --minNonMajorCount MINNONMAJORCOUNT
+                        minimum non major base count (type: Int64,
+                        default: 0)
+  --minNonMajorProportion MINNONMAJORPROPORTION
+                        minimum non major base proportion (type:
+                        Float64, default: 0.0)
+  --minGlobalDepth MINGLOBALDEPTH
+                        minimum global depth (type: Int64, default: 1)
+  --maxGlobalDepth MAXGLOBALDEPTH
+                        maximum global depth (type: Int64, default:
+                        10000)
+  --minSampleDepth MINSAMPLEDEPTH
+                        minimum sample depth (type: Int64, default: 0)
+  --maxSampleDepth MAXSAMPLEDEPTH
+                        maximum sample depth (type: Int64, default:
+                        10000)
+  --minSamples MINSAMPLES
+                        minimum number of valid samples to retain site
+                        (type: Int64, default: 1)
+  --nGrids NGRIDS       grid density for grid-search estimation of
+                        allele frequencies (type: Int64, default: 0)
+  --tol TOL             tolerance for GSS estimation of allele
+                        frequencies (type: Float64, default: 1.0e-5)
+  --phredscale PHREDSCALE
+                        phredscale (type: Int64, default: 33)
+  --verbose VERBOSE     verbosity level (type: Int64, default: 0)
+  --debug DEBUG         debug for 1 sample (type: Int64, default: 0)
+  --printSites PRINTSITES
+                        print on stdout every --printSites sites
+                        (type: Int64, default: 10000)
+  -h, --help            show this help message and exit
+```
+
+
 
 
 

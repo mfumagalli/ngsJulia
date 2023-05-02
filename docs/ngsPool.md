@@ -27,14 +27,14 @@ and explore the files generated with:
 ls test.*
 ```
 The file `test.txt` contains the true genotypes while `test.mpileup.gz` is a gzipped [mpileup](http://www.htslib.org/doc/samtools-mpileup.html) file containing information on sequencing data.
-Specifically, columns in `text.txt` contain:
-* contig identifier (set to the value of `--copy`)
-* position
-* reference allele (set to A)
-* alternate allele (set to C)
-* population allele frequency
-* genotypes
-* sample allele frequency
+Specifically, columns in `text.txt` contain:  
+ contig identifier (set to the value of `--copy`)  
+-position  
+-reference allele (set to A)  
+-alternate allele (set to C)  
+-population allele frequency  
+-genotypes  
+-sample allele frequency
 
 	
 ## Estimate allele frequencies with SNP calling and unknown sample size
@@ -60,17 +60,17 @@ The ouput file can be visualised with:
 ```bash
 less -S test.out.gz
 ```
-and for each called SNP provides the following information: \\
-* chromosome\\
-* position    \\    
-* reference allele\\
-* nonreference allele\\
-* major allele (inferred)\\
-* minor allele (inferred) \\
-* lrtSNP (LRT statistic for SNP calling)\\
-* lrtBia  (LRT statistic for bialleic site calling)\\
-* lrtTria ((LRT statistic for trialleic site calling)\\ 
-* maf (estimated minor allele frequency)
+and for each called SNP provides the following information:  
+-chromosome
+-position      
+-reference allele  
+-nonreference allele  
+-major allele (inferred)  
+-minor allele (inferred)  
+-lrtSNP (LRT statistic for SNP calling)  
+-lrtBia  (LRT statistic for bialleic site calling)  
+-lrtTria ((LRT statistic for trialleic site calling)   
+-maf (estimated minor allele frequency)
 
 The remaining columns are disabled using these options.
 
@@ -113,10 +113,10 @@ The output file is accessible with
 ```bash
 cat sfs.txt
 ```
-and reports the estimated SFS based on:\\
-* count: counting over MLE of per-site allele frequencies\\
-* fit\_count: fitting an exponential curve with counts of MLE of per-site allele frequencies\\
-* fit\_saf: fitting an exponential curve with per-site sample allele frequency likelihoods
+and reports the estimated SFS based on:  
+-count: counting over MLE of per-site allele frequencies  
+-fit\_count: fitting an exponential curve with counts of MLE of per-site allele frequencies  
+-fit\_saf: fitting an exponential curve with per-site sample allele frequency likelihoods
 
 ## Association test
 

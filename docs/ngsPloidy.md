@@ -40,14 +40,14 @@ The true data is contained in this file:
 ```bash
 less -S test.A.txt
 ```
-where each column indicates:
-* identifier of contig (named after the --copy option)
-* position
-* reference allele (set to A)
-* alternate allele (set to C)
-* population allele frequency
-* genotype for each sample
-* sampled allele frequency
+where each column indicates:  
+-identifier of contig (named after the --copy option)  
+-position  
+-reference allele (set to A)  
+-alternate allele (set to C)  
+-population allele frequency  
+-genotype for each sample  
+-sampled allele frequency  
 
 The simulated observed sequencing data is accessible with:
 ```bash
@@ -65,12 +65,12 @@ and access the output file as:
 cat test.A.out
 ```
 
-Results show:
-* nr of analysed sites: vector of sites that passed filtering for each sample
-* log-likelihoods of per-sample ploidies: a matrix of nr_sample X nr_ploidies with the log-likelihood of each sample having a certain ploidy (rows are separated by ;)
-* MLE vector of ploidies: the vector of individual maximum likelihood estimates of ploidy for each sample
-* log-likelikehood of MLE vector of ploidies: the log-likelihood of the above vector of estimated ploidies
-* LRT of multiploidy: difference between MLE vector of ploidies and the log-likliehood of all samples having the same ploidy, calculated for all tested ploidies
+Results show:  
+-nr of analysed sites: vector of sites that passed filtering for each sample  
+-log-likelihoods of per-sample ploidies: a matrix of nr\_sample X nr\_ploidies with the log-likelihood of each sample having a certain ploidy (rows are separated by ;)  
+-MLE vector of ploidies: the vector of individual maximum likelihood estimates of ploidy for each sample  
+-log-likelikehood of MLE vector of ploidies: the log-likelihood of the above vector of estimated ploidies  
+-LRT of multiploidy: difference between MLE vector of ploidies and the log-likliehood of all samples having the same ploidy, calculated for all tested ploidy levels  
 
 Note that by default all ploidy levels from 1 to 8 are tested, and therefore for each sample 8 likelihoods are calculated and reported.
 To extract the interpretation of these results, we can run the following script: 
@@ -125,17 +125,17 @@ with the output file accessible with:
 ```bash
 less -S test.B.out.gz
 ```
-Specifically, this file reports:
-* chrom: chromosome
-* pos: position
-* ref: reference allele
-* depth: sequencing depth
-* ref/anc: reference or ancestral allele (inferred)
-* alt/der: alternate or derived allele (inferred)
-* lrtSnp: LRT for the site being a SNP
-* lrtBia: LRT for the site being biallelic
-* lrtTria: LRT for the site being triallelic
-* aaf: estimated alternate or ancestral allele frequency
+Specifically, this file reports:  
+-chrom: chromosome  
+-pos: position  
+-ref: reference allele  
+-depth: sequencing depth  
+-ref/anc: reference or ancestral allele (inferred)  
+-alt/der: alternate or derived allele (inferred)  
+-lrtSnp: LRT for the site being a SNP  
+-lrtBia: LRT for the site being biallelic  
+-lrtTria: LRT for the site being triallelic  
+-aaf: estimated alternate or ancestral allele frequency  
 
 Note that in this case results are printed on the screen.
 Also note that if `--fpars` is not provided, `--fout` will show the estimate of the minor allele frequency (maf) instead.

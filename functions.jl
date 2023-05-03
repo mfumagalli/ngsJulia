@@ -78,6 +78,7 @@ end
 	convertSyms(read::Reads, site::Site)
 
 Convert symbols in the fifth element (sequence reads) of pileup (i.e. sequenced reads) to nucleotides. Pileup format as defined here http://samtools.sourceforge.net/pileup.shtml
+Pileup must contain reference bases.
 
 # Example
 ```julia-repl

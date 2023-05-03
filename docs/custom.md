@@ -15,7 +15,7 @@ julia> mySite=Site("chrom12", 835132, 'A'); # chromosome, position and reference
 ```
 These variable can be easily created by reading mpileup files, for instance using the following routine for this example:
 ```julia-repl
->julia 	GZip.open("input.mpileup.gz") do file
+julia> 	GZip.open("input.mpileup.gz") do file
         	for line in eachline(file)
                 	l = (split(line, "\t"))
                 	global mySite = Site(l[1], parse(Int64, l[2]), uppercase(Char(l[3][1])))

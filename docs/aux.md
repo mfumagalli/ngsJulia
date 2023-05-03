@@ -36,6 +36,17 @@ copy_3x2	2	A	11	C...C.C.CC.	20441234234	19	C.C.CCCCCC.CC..CCCC	32624244233543445
 copy_3x2	3	A	13	........G....	4622432455514	11	.......CC..	42234625112
 ```
 
+---------------------------------------------------------------------------------------
+
+- ploidyLRT.R
+
+Returns the most likely vector of ploidy with its statistical support, and provides with the outcome of a test for multiploidy. It receives in input the output file of `ngsPloidy`.
+
+Example:
+```bash
+Rscript $NGSJULIA/ngsPloidy/ploidyLRT.R test.out
+```
+
 
 ----------------------------------------------------------------------------------------
 
@@ -54,15 +65,15 @@ panc	p	2	double	prob of ancestral being correct, if 0.5 is folded [default], if<
 help	h	0	logical	print help message
 ```
 
-where:\\
-* '-k' denotes the shape of the site frequency spectrum:\\
-        - k=1 : constant population size\\
-        - k>1 : population bottleneck\\
-        - k<1 : population growth\\
-* '-n' is the effective population size\\
-* '-s' if a flag and specifies that SNPs have beeen called; this is useful only if only one sample is analysed with called SNPs\\
-* '-p' specifies how to define the probability that the ancestral state is the major allele, e.g., if 0.5 this means you assume folded data, if -1 it will compute it using the site frequency spectrum\\
-* '-h' prints a help message.\\
+where:  
+'-k' denotes the shape of the site frequency spectrum:  
+        - k=1 : constant population size  
+        - k>1 : population bottleneck  
+        - k<1 : population growth  
+'-n' is the effective population size  
+'-s' if a flag and specifies that SNPs have beeen called; this is useful only if only one sample is analysed with called SNPs  
+'-p' specifies how to define the probability that the ancestral state is the major allele, e.g., if 0.5 this means you assume folded data, if -1 it will compute it using the site frequency spectrum  
+'-h' prints a help message.
 
 Example to generate genotype probabilities with effective population size of 1000 and folded spectrum
 ```bash

@@ -90,15 +90,15 @@ The output file reports values for all sites that passed filtering:
 ```bash
 less -S test.out.gz
 ```
-and contains two additiona columns:
-* saf\_MLE (MLE of allele frequency from sample allele frequency likelihoods)
-* saf\_E (expected value of allele frequency from sample allele frequency likelihoods and uniform prior probability)
+and contains two additiona columns:  
+-saf\_MLE (MLE of allele frequency from sample allele frequency likelihoods)  
+-saf\_E (expected value of allele frequency from sample allele frequency likelihoods and uniform prior probability)
 
 Additionally, a new file is generated:
 ```bash
 less -S test.saf.gz
 ```
-reporting the sample allele frequency log-likelihoods at each site (scaled to the ML).
+reporting the sample allele frequency log-likelihoods at each site (scaled to the maximum likelihood value).
 
 ## Site frequency spectrum
 
@@ -172,11 +172,11 @@ optional arguments:
   --nChroms NCHROMS     total number of chromosomes pooled (ploidy *
                         number of individuals) [>0 ensables saf
                         likelihoods] (type: Int64, default: 0)
-  --lrtSnp LRTSNP       LRT for SNP calling (type: Float64, default:
+  --lrtSnp LRTSNP       chisquare value for SNP calling (type: Float64, default:
                         -Inf)
-  --lrtBia LRTBIA       LRT for biallelic calling (type: Float64,
+  --lrtBia LRTBIA       chisquare value for biallelic calling (type: Float64,
                         default: -Inf)
-  --lrtTria LRTTRIA     LRT for triallelic (non) calling (type:
+  --lrtTria LRTTRIA     chisquare value for triallelic (non) calling (type:
                         Float64, default: Inf)
   --minQ MINQ           minimum base quality in phredscore (type:
                         Int64, default: 5)

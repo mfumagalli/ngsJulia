@@ -5,8 +5,18 @@ The model is described in the related [paper](https://f1000research.com/articles
 In addition to provide several estimators of allele frequencies, `ngsPool` includes scripts to estimate the site frequency spectrum and for association tests.
 
 To showcase its use, this tutorial will simulate some pooled sequencing data and demonstrate the various options and possible analyses implemented in `ngsPool`.
-Throughout these examples, we assume that we defined an environment variable `NGSJULIA` that points to the installation path.
 
+Throughout these examples, we assume that we defined an environment variable `NGSJULIA` that points to the installation path.
+Assuming that `ngsJulia` is installed in a folder name `~/Software`, this can be achieved temporarily wit
+h
+```bash
+NGSJULIA=~/Software/ngsJulia
+```
+or permanently with
+```bash
+sudo nano ~/.bashrc
+export NGSJULIA=~/Software/ngsJulia
+source ~/.bashrc
 
 ## Simulate pooled NGS data 
 
@@ -99,6 +109,8 @@ Additionally, a new file is generated:
 less -S test.saf.gz
 ```
 reporting the sample allele frequency log-likelihoods at each site (scaled to the maximum likelihood value).
+Each column corresponds to the log-likelihood value of that particular allele frequency, ranging from 0 to the maximum number of chromosomal copies (20, in this example). 
+
 
 ## Site frequency spectrum
 
@@ -130,6 +142,7 @@ Rscript $NGSJULIA/simulMpileup_qq.R --out /dev/null --copy 2x200 --sites 1 --dep
 # controls
 Rscript $NGSJULIA/simulMpileup_qq.R --out /dev/null --copy 2x200 --sites 1 --depth 1 --qq 0.05 --pool | gzip > test.controls.mpileup.gz
 ```
+The script `simulMpileup_qq.R` is an extention of `simulMpileup.R` to allow for fixed population allele frequencies to be simulated using the option `--qq`.
 
 We calculate sample allele frequency likelihoods with:
 ```bash

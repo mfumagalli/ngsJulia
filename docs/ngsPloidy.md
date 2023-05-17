@@ -13,6 +13,16 @@ It also tests for multiploidy within the sample, i.e. it provides statistical su
 `ngsPloidy` supports data filtering based on quality and depth values.
 
 Throughout these examples, we assume that we defined an environment variable `NGSJULIA` that points to the installation path.
+Assuming that `ngsJulia` is installed in a folder name `~/Software`, this can be achieved temporarily with
+```bash
+NGSJULIA=~/Software/ngsJulia
+```
+or permanently with
+```bash
+sudo nano ~/.bashrc
+export NGSJULIA=~/Software/ngsJulia
+source ~/.bashrc
+```
 
 ## Case studies
 
@@ -70,16 +80,18 @@ Results show:
 -log-likelihoods of per-sample ploidies: a matrix of nr\_sample X nr\_ploidies with the log-likelihood of each sample having a certain ploidy (rows are separated by ;)  
 -MLE vector of ploidies: the vector of individual maximum likelihood estimates of ploidy for each sample  
 -log-likelikehood of MLE vector of ploidies: the log-likelihood of the above vector of estimated ploidies  
--LRT of multiploidy: difference between MLE vector of ploidies and the log-likliehood of all samples having the same ploidy, calculated for all tested ploidy levels  
+-LRT of multiploidy: difference between MLE vector of ploidies and the log-likelihood of all samples having the same ploidy, calculated for all tested ploidy levels  
 
 Note that by default all ploidy levels from 1 to 8 are tested, and therefore for each sample 8 likelihoods are calculated and reported.
 To extract the interpretation of these results, we can run the following script: 
 ```bash
-Rscript $NGSJULIA/ngsPloidy/ploidyLRT.R test.A.out
+Rscript $NGSJULIA/ngsPloidy/ploidyLRT.R --in test.A.out --out test.A.ploidy.out
+cat test.A.ploidy.out
 ```
 which outputs the most likely ploidy with its statistical support and the result for the test of multiploidy.
 In this example, we can see that the vector of estimated ploidy levels is equal to the simulated one.
 We further observe that the LRT value for multiploidy are high, further suggesting variation in ploidy among samples.
+In fact, the most likely vector of equal ploidy levels is 4 but it has less support than the inferred vector of multiploidy.
 
 
 ### Case B: 2 haploids, 2 diploids, 2 triploids, 2 tetraploids, 2 pentaploids
@@ -140,18 +152,6 @@ Specifically, this file reports:
 Note that in this case results are printed on the screen.
 Also note that if `--fpars` is not provided, `--fout` will show the estimate of the minor allele frequency (maf) instead.
 
----------------------------------------------
-
-If `-fglikes` is given (optional), the program ouputs the per-site genotype likelihoods for each tested ploidy,
-```bash
-julia $NGSJULIA/ngsPloidy/ngsPloidy.jl --fin test.B.mpileup.gz --fpars test.pars --fglikes test.B.glikes.gz --nSamples 10 --keepRef 1
-```
-with the output file accessible with:
-```bash
-less -S test.B.glikes.gz
-```
-where genotype likelihoods (assuming diallelic variation) for all tested ploidy are provided on each line.
-
 --------------------------
 
 We can also change the genotype probabilities in input. 
@@ -201,6 +201,19 @@ Rscript $NGSJULIA/ngsPloidy/ploidyLRT.R test.C.out
 ```
 As we can evince from the results, we fail to reject the null hypothesis of equal ploidy across all samples, as desired given the simulated scenario.
 
+---------------------------------------------
+
+If `-fglikes` is given (optional), the program ouputs the per-site genotype likelihoods for each tested ploidy,
+```bash
+julia $NGSJULIA/ngsPloidy/ngsPloidy.jl --fin test.C.mpileup.gz --fpars test.unk.pars --fglikes test.C.glikes.gz --nSamples 10 --keepRef 1 --minQ 15
+```
+with the output file accessible with:
+```bash
+less -S test.C.glikes.gz
+```
+where genotype likelihoods (assuming diallelic variation) for all tested ploidy are provided on each line.
+
+
 ### Case D: 1 diploid, 8 triploids, 1 tetraploid with and folded allele frequencies
 
 This scenario can be simulated with:
@@ -237,7 +250,7 @@ Rscript $NGSJULIA/ngsPloidy/writePars.R -k 0.9 -n 100000 -p 1 -s > test.snp.pars
 The latter is in chi-square score value where, for instance, 6.64 corresponds to a p-value of 0.01.
 
 ```bash
-$julia $NGSJULIA/ngsPloidy/ngsPloidy.jl --fin test.E.mpileup.gz --fpars test.snp.pars --keepRef 1 --nSamples 1 --lrtSnp 6.64 > test.E.out
+julia $NGSJULIA/ngsPloidy/ngsPloidy.jl --fin test.E.mpileup.gz --fpars test.snp.pars --keepRef 1 --nSamples 1 --lrtSnp 6.64 > test.E.out
 
 Rscript $NGSJULIA/ngsPloidy/ploidyLRT.R test.E.out
 ```
@@ -251,7 +264,7 @@ Results may vary depending on the filtering options and users are encourage to c
 
 All options in `ngsPloidy` can be retrieved by:
 ```bash
-$ julia $NGSJULIA/ngsPloidy/ngsPloidy.jl --help
+julia $NGSJULIA/ngsPloidy/ngsPloidy.jl --help
 
 usage: ngsPloidy.jl --fin FIN [--fpars FPARS] [--fout FOUT]
                     [--fglikes FGLIKES] --nSamples NSAMPLES

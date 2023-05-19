@@ -1,6 +1,7 @@
 # ngsJulia Documentation
 
 For the source code visit [ngsJulia](https://github.com/mfumagalli/ngsJulia).
+A preprint describing the methodology and its implementation is available [here](https://f1000research.com/articles/11-126).
 
 Templates and functions in Julia language to process next-generation sequencing (NGS) data for population genetic analysis.
 `ngsJulias` receives NGS data files as input and provides routines and functions to parse files, perform data filtering and implement custom population genetic analyses.

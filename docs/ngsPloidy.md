@@ -48,7 +48,7 @@ Rscript $NGSJULIA/simulMpileup.R --out test.A.txt --copy 1x4,2x4,3x4,4x4,5x4 --s
 ```
 The true data is contained in this file:
 ```bash
-less -S test.A.txt
+zcat test.A.txt | less -S
 ```
 where each column indicates:  
 -identifier of contig (named after the --copy option)  
@@ -61,7 +61,7 @@ where each column indicates:
 
 The simulated observed sequencing data is accessible with:
 ```bash
-less -S test.A.mpileup.gz
+zcat test.A.mpileup.gz | less -S
 ```
 and it is formatted as standard [mpileup](http://www.htslib.org/doc/samtools-mpileup.html) file.
 
@@ -117,7 +117,7 @@ Rscript $NGSJULIA/ngsPloidy/writePars.R -k 1 -n 10000 -p 1 > test.pars
 
 julia $NGSJULIA/ngsPloidy/ngsPloidy.jl --fin test.B.mpileup.gz --fpars test.pars --nSamples 10 --keepRef 1 > test.B.out
 
-Rscript $NGSJULIA/ngsPloidy/ploidyLRT.R test.B.out
+Rscript $NGSJULIA/ngsPloidy/ploidyLRT.R --in test.B.out --out test.B.ploidy.out
 ```
 The option `--keepRef` forces the reference allele to be one of the two considered alleles and it is mandatory with `--fpars`.
 
@@ -135,7 +135,7 @@ julia $NGSJULIA/ngsPloidy/ngsPloidy.jl --fin test.B.mpileup.gz --fpars test.pars
 ```
 with the output file accessible with:
 ```bash
-less -S test.B.out.gz
+zcat test.B.out.gz | less -S
 ```
 Specifically, this file reports:  
 -chrom: chromosome  
@@ -209,7 +209,7 @@ julia $NGSJULIA/ngsPloidy/ngsPloidy.jl --fin test.C.mpileup.gz --fpars test.unk.
 ```
 with the output file accessible with:
 ```bash
-less -S test.C.glikes.gz
+zcat test.C.glikes.gz | less -S
 ```
 where genotype likelihoods (assuming diallelic variation) for all tested ploidy are provided on each line.
 

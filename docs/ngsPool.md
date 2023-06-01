@@ -68,7 +68,7 @@ In this example, the choice of 6.64 corresponds to a p-value of 0.01 (3.84 and 1
 
 The ouput file can be visualised with:
 ```bash
-less -S test.out.gz
+zcat test.out.gz | less -S
 ```
 and for each called SNP provides the following information:  
 -chromosome
@@ -98,7 +98,7 @@ Note that we are not doing SNP calling as ``--lrtSnp`` is not set.
 
 The output file reports values for all sites that passed filtering:
 ```bash
-less -S test.out.gz
+zcat test.out.gz | less -S
 ```
 and contains two additiona columns:  
 -saf\_MLE (MLE of allele frequency from sample allele frequency likelihoods)  
@@ -106,7 +106,7 @@ and contains two additiona columns:
 
 Additionally, a new file is generated:
 ```bash
-less -S test.saf.gz
+zcat test.saf.gz | less -S
 ```
 reporting the sample allele frequency log-likelihoods at each site (scaled to the maximum likelihood value).
 Each column corresponds to the log-likelihood value of that particular allele frequency, ranging from 0 to the maximum number of chromosomal copies (20, in this example). 

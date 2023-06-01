@@ -8,7 +8,7 @@ Auxiliary `R` scripts provide additional functionalities for running simulations
 Simulate mpileup file with different ploidy level for biallelic sites.
 
 ```bash
-$ Rscript simulMpileup.R --help
+Rscript simulMpileup.R --help
 
 out	o	2	character	output files for real data (and log if verbose), (mpileup is in stdout)
 copy	c	1	character	ploidy per sample, e.g. 2x3,4 is 2,2,2,4
@@ -42,11 +42,18 @@ copy_3x2	3	A	13	........G....	4622432455514	11	.......CC..	42234625112
 
 Returns the most likely vector of ploidy with its statistical support, and provides with the outcome of a test for multiploidy. It receives in input the output file of `ngsPloidy`.
 
-Example:
 ```bash
-Rscript $NGSJULIA/ngsPloidy/ploidyLRT.R test.out
+Rscript ploidyLRT.R --help
+
+in	i	2	character	input file is the output file from ngsPloidy
+out	o	2	character	output file
+help	h	0	logical	print help message
 ```
 
+Example:
+```bash
+Rscript $NGSJULIA/ngsPloidy/ploidyLRT.R --in test.out --test.LRT.out
+```
 
 ----------------------------------------------------------------------------------------
 
@@ -57,7 +64,7 @@ We also need to provide the probability of the major allele being ancestral, as 
 These probability files can be generated using the following R script (which requires `getopt` package):
 
 ```bash
-$ Rscript ngsPloidy/writePars.R --help
+Rscript ngsPloidy/writePars.R --help
 ksfs	k	2	double	coeff. for shape of SFS default [1.0]
 ne	n	2	integer	effective population size [default 10,000]
 snpcall	s	0	logical	flag id snps were called
@@ -77,7 +84,7 @@ where:
 
 Example to generate genotype probabilities with effective population size of 1000 and folded spectrum
 ```bash
-$ Rscript ngsPloidy/writePars.R --ne 1000 --panc 0.5
+Rscript ngsPloidy/writePars.R --ne 1000 --panc 0.5
 0.5	0.5
 0.8665236	0.1334764
 0.7508632	0.2313209	0.01781594

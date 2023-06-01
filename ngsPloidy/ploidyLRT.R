@@ -1,13 +1,12 @@
 
 library("getopt")
 
-# http://www.inside-r.org/packages/cran/getopt/docs/getopt.package
-spec=matrix(c(
-	      'in',	'i', 2, "character", "input file is the output file from ngsPloidy",
-              'out',    'o', 2, "character", "output file",
+spec=matrix(c('in',	'i', 1, "character", "input file is the output file from ngsPloidy",
+              'out',    'o', 1, "character", "output file",
 	      'help', 'h', 0, "logical", "print help message"
               ), byrow=TRUE, ncol=5)
 opt <- getopt(spec)
+
 
 # help
 if ( !is.null(opt$help) ) {
@@ -16,7 +15,7 @@ if ( !is.null(opt$help) ) {
 }
 
 
-res <- readLines(opt$in)
+res <- readLines(opt$`in`)
 
 mle <- as.numeric(strsplit(res[5], split=":")[[1]][2])
 
